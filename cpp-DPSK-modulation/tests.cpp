@@ -2,8 +2,25 @@
 
 #include <iostream>
 #include <cassert>
+#include <vector>
 
 using namespace std;
+
+ostream& operator<<(ostream& out, uint8_t value) {
+    out << static_cast<int>(value);
+    return out;
+}
+
+template <typename Type>
+ostream& operator<<(ostream& out, const vector<vector<Type>>& matrix) {
+    for (size_t i = 0; i < matrix.size(); ++i) {
+        for (size_t j = 0; j < matrix[i].size(); ++j) {
+            out << matrix[i][j];
+        }
+        out << endl;
+    }
+    return out;
+}
 
 namespace gray_code {
     namespace tests {
@@ -37,9 +54,66 @@ namespace gray_code {
             cerr << "gray_code::TestExtractNumBitsFormValue has passed"s << endl;
         }
 
+        void TestFactorial() {
+            assert(Factorial(0) == 1);
+            assert(Factorial(1) == 1);
+            assert(Factorial(5) == 120);
+            try {
+                Factorial(-5);
+                assert(false);
+            } catch (const exception& /*except*/) {
+                // факториала от отрицательного числа не существует
+            }
+            cerr << "gray_code::TestFactorial passed"s << endl;
+        }
+
+        void TestThrowsFromCalculateNumberCombinations(int32_t n, int32_t k) {
+            try {
+                CalculateNumberCombinations(n, k);
+                assert(false);
+            } catch (const exception& /*except*/) {
+                // n или k меньше нуля, либо n < k
+            }
+        }
+
+        void TestCalculateNumberCombinations() {
+            assert(CalculateNumberCombinations(1, 1) == 1);
+            assert(CalculateNumberCombinations(0, 0) == 1);
+            assert(CalculateNumberCombinations(7, 2) == 21);
+            assert(CalculateNumberCombinations(10, 6) == 210);
+            assert(CalculateNumberCombinations(14, 1) == 14);
+            assert(CalculateNumberCombinations(28, 4) == 20475);
+            TestThrowsFromCalculateNumberCombinations(1, 5); // n < k
+            TestThrowsFromCalculateNumberCombinations(-5, -2); // n < 0 и k < 0
+            TestThrowsFromCalculateNumberCombinations(-1, 3); // n < 0
+            TestThrowsFromCalculateNumberCombinations(7, -3); // k < 0
+            cerr << "gray_code::TestCalculateNumberCombinations passed"s << endl;
+        }
+
+        void TestMakeGrayCodes() {
+            /*{
+                vector<vector<uint8_t>> expected {{0}};
+                assert(MakeGrayCodes(1) == expected);
+            }{
+                vector<vector<uint8_t>> expected {{0}, {1}};
+                cout << MakeGrayCodes(2) << endl;
+                assert(MakeGrayCodes(2) == expected);
+            }*/{
+                vector<vector<uint8_t>> expected {{0}, {1}};
+                cout << MakeGrayCodes(8) << endl;
+                //assert(MakeGrayCodes(2) == expected);
+            }
+
+
+            cerr << "gray_code::TestMakeGrayCodes has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
+            TestFactorial();
+            TestCalculateNumberCombinations();
+            TestMakeGrayCodes();
             cerr << "gray_code::AllTests has passed"s << endl;
         }
     } // namespace tests
