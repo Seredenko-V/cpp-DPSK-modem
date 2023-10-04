@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <cmath>
+#include <cassert>
 
 #include <iostream>
 
@@ -69,16 +70,27 @@ namespace gray_code {
         if (num_codes == 1) {
             return {{0}};
         }
-        const int kLengthGrayCodes = log2(num_codes);
-        cout << "kLengthGrayCodes=" << kLengthGrayCodes << endl;
-        vector<vector<uint8_t>> gray_codes(num_codes, vector<uint8_t>(ExtractNumBitsFormValue(kLengthGrayCodes), 0));
+        const int kLengthGrayCodes = log2(num_codes); // количество бит в кодах Грея
+        vector<vector<uint8_t>> gray_codes(num_codes, vector<uint8_t>(kLengthGrayCodes, 0));
         gray_codes[1][kLengthGrayCodes - 1] = 1; // устанавливается второй код Грея 01. Первый - 00
 
-//        for (int code_id = 2; code_id < num_codes; ++code_id) {
-//            for (int bit_id = 0; bit_id < kLengthGrayCodes; ++bit_id) {
+        // по блокам, начиная с 3-го. Первые два - крайний случай
+        for (int block = 2; block < num_codes; block *= 2) {
+            const int kPosNewSeniorDigit = kLengthGrayCodes - log2(block) - 1; // позиция нового старшего разряда, в который записывается единица
+            int offset_back = 1; // смещение назад по номерам кодов Грея
 
-//            }
-//        }
+            // Обработка кодов внутри блока. Количество кодов в одном блоке равно удвоенному номеру блока (по кодам внутри одного блока)
+            for (int code_id = block; code_id < block * 2; ++code_id) {
+                gray_codes[code_id][kPosNewSeniorDigit] = 1;
+
+                // Побитная обработка каждого кода (по самому коду)
+                for (int bit_id = kPosNewSeniorDigit + 1; bit_id < kLengthGrayCodes; ++bit_id) {
+                    assert(offset_back % 2); //смещение назад всегда должно быть нечетным
+                    gray_codes[code_id][bit_id] = gray_codes[code_id - offset_back][bit_id];
+                }
+                offset_back += 2;
+            }
+        }
         return gray_codes;
     }
 

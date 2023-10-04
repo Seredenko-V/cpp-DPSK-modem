@@ -90,21 +90,51 @@ namespace gray_code {
             cerr << "gray_code::TestCalculateNumberCombinations passed"s << endl;
         }
 
+        void TestThrowsFromMakeGrayCodes(int num_codes) {
+            try {
+                MakeGrayCodes(num_codes);
+                assert(false);
+            } catch (const invalid_argument& /*except*/) {
+                // количество кодов Грея должно являться степенью двойки
+            }
+        }
+
         void TestMakeGrayCodes() {
-            /*{
+            TestThrowsFromMakeGrayCodes(-2);
+            TestThrowsFromMakeGrayCodes(0);
+            TestThrowsFromMakeGrayCodes(21589);
+            { // 1 бит
                 vector<vector<uint8_t>> expected {{0}};
                 assert(MakeGrayCodes(1) == expected);
-            }{
-                vector<vector<uint8_t>> expected {{0}, {1}};
-                cout << MakeGrayCodes(2) << endl;
+            }{ // 1 бит
+                vector<vector<uint8_t>> expected {{0},
+                                                  {1}};
                 assert(MakeGrayCodes(2) == expected);
-            }*/{
-                vector<vector<uint8_t>> expected {{0}, {1}};
-                cout << MakeGrayCodes(8) << endl;
-                //assert(MakeGrayCodes(2) == expected);
+            }{ // 2 бита
+                vector<vector<uint8_t>> expected {{0,0},
+                                                  {0,1},
+                                                  {1,1},
+                                                  {1,0}};
+                assert(MakeGrayCodes(4) == expected);
+            }{ // 4 бита
+                vector<vector<uint8_t>> expected {{0,0,0,0},
+                                                  {0,0,0,1},
+                                                  {0,0,1,1},
+                                                  {0,0,1,0},
+                                                  {0,1,1,0},
+                                                  {0,1,1,1},
+                                                  {0,1,0,1},
+                                                  {0,1,0,0},
+                                                  {1,1,0,0},
+                                                  {1,1,0,1},
+                                                  {1,1,1,1},
+                                                  {1,1,1,0},
+                                                  {1,0,1,0},
+                                                  {1,0,1,1},
+                                                  {1,0,0,1},
+                                                  {1,0,0,0},};
+                assert(MakeGrayCodes(16) == expected);
             }
-
-
             cerr << "gray_code::TestMakeGrayCodes has passed"s << endl;
         }
 
