@@ -1,33 +1,20 @@
 #include "gray_code.h"
+#include "math_operations.h"
 
 #include <stdexcept>
 #include <string>
 #include <cmath>
 #include <cassert>
 
-#include <iostream>
-
 using namespace std;
 
 namespace gray_code {
-    bool IsPowerOfTwo(int value) noexcept {
-        return value && !(value & (value - 1));
-    }
-
-    int ExtractNumBitsFormValue(int value) {
-        // число должно быть положительным
-        if (value <= 0) {
-            throw invalid_argument("Number is not positive."s);
-        }
-        return floor(log2(value)) + 1;
-    }
-
     // Можно реализовать в виде класса с использованием паттерна "Singleton".
     // Это позволит уменьшить сложность алгоритма за счет кэширования уже сгенерированных кодов
     // и их последующего использования для генерации кодов больших разрядностей
     vector<vector<uint8_t>> MakeGrayCodes(int num_codes) {
         // количество должно являться степенью двойки
-        if (!IsPowerOfTwo(num_codes)) {
+        if (!math::IsPowerOfTwo(num_codes)) {
             throw invalid_argument("Number of codes is not a power of two."s);
         }
         // возвращается просто 0
@@ -45,10 +32,10 @@ namespace gray_code {
             // Обработка кодов внутри блока. Количество кодов в одном блоке равно удвоенному номеру блока (по кодам внутри одного блока)
             for (int code_id = block; code_id < block * 2; ++code_id) {
                 gray_codes[code_id][kPosNewSeniorDigit] = 1;
+                assert(offset_back % 2); //смещение назад всегда должно быть нечетным
 
                 // Побитная обработка каждого кода (по самому коду)
                 for (int bit_id = kPosNewSeniorDigit + 1; bit_id < kLengthGrayCodes; ++bit_id) {
-                    assert(offset_back % 2); //смещение назад всегда должно быть нечетным
                     gray_codes[code_id][bit_id] = gray_codes[code_id - offset_back][bit_id];
                 }
                 offset_back += 2;

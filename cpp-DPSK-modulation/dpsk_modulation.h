@@ -8,10 +8,6 @@
 std::vector<double> ModulationElementrySignal(const std::vector<uint8_t>& bits, uint8_t reference_bit);
 
 
-/// Перевод из 2-ой в 10-ю систему счисления
-int ConvertationBitsToInt(const std::vector<uint8_t>& bits);
-
-
 /// Модулятор относительной фазовой модуляции (ОФМ) любой позиционности, являющейся степенью двойки
 class DPSKModulator {
 public:
@@ -25,7 +21,10 @@ public:
     uint8_t GetPositionality() const noexcept;
 
     /// Модуляция последовательности бит. reference_bit - опорный бит
-    std::vector<double> Modulation(const std::vector<uint8_t>& bits, uint8_t reference_bit);
+    std::vector<double> Modulation(const std::vector<uint8_t>& bits, uint8_t reference_bit) const;
+
+    /// Модуляция последовательности бит с указанием нужной позиционности. reference_bit - опорный бит
+    std::vector<double> Modulation(const std::vector<uint8_t>& bits, uint8_t reference_bit, uint8_t positionality);
 
     // в дальнейшем появятся перегрузки для записи в принимаемый по НЕ константной ссылке контейнер
     // и для приёма пары итераторов, указывающих на контейнер с битами

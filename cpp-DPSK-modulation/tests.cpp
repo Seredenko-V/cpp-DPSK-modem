@@ -1,3 +1,4 @@
+#include "math_operations.h"
 #include "gray_code.h"
 
 #include <iostream>
@@ -22,7 +23,7 @@ ostream& operator<<(ostream& out, const vector<vector<Type>>& matrix) {
     return out;
 }
 
-namespace gray_code {
+namespace math {
     namespace tests {
         void TestIsPowerOfTwo() {
             assert(IsPowerOfTwo(1));
@@ -33,7 +34,7 @@ namespace gray_code {
             assert(!IsPowerOfTwo(5));
             assert(!IsPowerOfTwo(24));
             assert(!IsPowerOfTwo(4097));
-            cerr << "gray_code::TestIsPowerOfTwo has passed"s << endl;
+            cerr << "math::TestIsPowerOfTwo has passed"s << endl;
         }
 
         void TestThrowsFromExtractNumBitsFormValue(int value) {
@@ -51,9 +52,20 @@ namespace gray_code {
             assert(ExtractNumBitsFormValue(1) == 1);
             assert(ExtractNumBitsFormValue(15) == 4);
             assert(ExtractNumBitsFormValue(4096) == 13);
-            cerr << "gray_code::TestExtractNumBitsFormValue has passed"s << endl;
+            cerr << "math::TestExtractNumBitsFormValue has passed"s << endl;
         }
 
+        void RunAllTests() {
+            TestIsPowerOfTwo();
+            TestExtractNumBitsFormValue();
+            cerr << "math::AllTests has passed"s << endl;
+        }
+    } // namespace tests
+} // namespace math
+
+
+namespace gray_code {
+    namespace tests {
         void TestThrowsFromMakeGrayCodes(int num_codes) {
             try {
                 MakeGrayCodes(num_codes);
@@ -103,8 +115,6 @@ namespace gray_code {
         }
 
         void RunAllTests() {
-            TestIsPowerOfTwo();
-            TestExtractNumBitsFormValue();
             TestMakeGrayCodes();
             cerr << "gray_code::AllTests has passed"s << endl;
         }
