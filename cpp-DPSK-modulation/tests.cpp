@@ -54,42 +54,6 @@ namespace gray_code {
             cerr << "gray_code::TestExtractNumBitsFormValue has passed"s << endl;
         }
 
-        void TestFactorial() {
-            assert(Factorial(0) == 1);
-            assert(Factorial(1) == 1);
-            assert(Factorial(5) == 120);
-            try {
-                Factorial(-5);
-                assert(false);
-            } catch (const exception& /*except*/) {
-                // факториала от отрицательного числа не существует
-            }
-            cerr << "gray_code::TestFactorial passed"s << endl;
-        }
-
-        void TestThrowsFromCalculateNumberCombinations(int32_t n, int32_t k) {
-            try {
-                CalculateNumberCombinations(n, k);
-                assert(false);
-            } catch (const exception& /*except*/) {
-                // n или k меньше нуля, либо n < k
-            }
-        }
-
-        void TestCalculateNumberCombinations() {
-            assert(CalculateNumberCombinations(1, 1) == 1);
-            assert(CalculateNumberCombinations(0, 0) == 1);
-            assert(CalculateNumberCombinations(7, 2) == 21);
-            assert(CalculateNumberCombinations(10, 6) == 210);
-            assert(CalculateNumberCombinations(14, 1) == 14);
-            assert(CalculateNumberCombinations(28, 4) == 20475);
-            TestThrowsFromCalculateNumberCombinations(1, 5); // n < k
-            TestThrowsFromCalculateNumberCombinations(-5, -2); // n < 0 и k < 0
-            TestThrowsFromCalculateNumberCombinations(-1, 3); // n < 0
-            TestThrowsFromCalculateNumberCombinations(7, -3); // k < 0
-            cerr << "gray_code::TestCalculateNumberCombinations passed"s << endl;
-        }
-
         void TestThrowsFromMakeGrayCodes(int num_codes) {
             try {
                 MakeGrayCodes(num_codes);
@@ -132,7 +96,7 @@ namespace gray_code {
                                                   {1,0,1,0},
                                                   {1,0,1,1},
                                                   {1,0,0,1},
-                                                  {1,0,0,0},};
+                                                  {1,0,0,0}};
                 assert(MakeGrayCodes(16) == expected);
             }
             cerr << "gray_code::TestMakeGrayCodes has passed"s << endl;
@@ -141,8 +105,6 @@ namespace gray_code {
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
-            TestFactorial();
-            TestCalculateNumberCombinations();
             TestMakeGrayCodes();
             cerr << "gray_code::AllTests has passed"s << endl;
         }
