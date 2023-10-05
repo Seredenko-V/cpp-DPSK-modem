@@ -12,7 +12,7 @@ namespace gray_code {
     // Можно реализовать в виде класса с использованием паттерна "Singleton".
     // Это позволит уменьшить сложность алгоритма за счет кэширования уже сгенерированных кодов
     // и их последующего использования для генерации кодов больших разрядностей
-    vector<vector<uint8_t>> MakeGrayCodes(int num_codes) {
+    vector<vector<bool>> MakeGrayCodes(int num_codes) {
         // количество должно являться степенью двойки
         if (!math::IsPowerOfTwo(num_codes)) {
             throw invalid_argument("Number of codes is not a power of two."s);
@@ -22,7 +22,7 @@ namespace gray_code {
             return {{0}};
         }
         const int kLengthGrayCodes = log2(num_codes); // количество бит в кодах Грея
-        vector<vector<uint8_t>> gray_codes(num_codes, vector<uint8_t>(kLengthGrayCodes, 0));
+        vector<vector<bool>> gray_codes(num_codes, vector<bool>(kLengthGrayCodes, 0));
 
         // по блокам, начиная с 1-го. Первый - крайний случай
         for (int block = 1; block < num_codes; block *= 2) {

@@ -96,20 +96,20 @@ namespace gray_code {
             TestThrowsFromMakeGrayCodes(0);
             TestThrowsFromMakeGrayCodes(21589);
             { // 1 бит
-                vector<vector<uint8_t>> expected {{0}};
+                vector<vector<bool>> expected {{0}};
                 assert(MakeGrayCodes(1) == expected);
             }{ // 1 бит
-                vector<vector<uint8_t>> expected {{0},
+                vector<vector<bool>> expected {{0},
                                                   {1}};
                 assert(MakeGrayCodes(2) == expected);
             }{ // 2 бита
-                vector<vector<uint8_t>> expected {{0,0},
+                vector<vector<bool>> expected {{0,0},
                                                   {0,1},
                                                   {1,1},
                                                   {1,0}};
                 assert(MakeGrayCodes(4) == expected);
             }{ // 4 бита
-                vector<vector<uint8_t>> expected {{0,0,0,0},
+                vector<vector<bool>> expected {{0,0,0,0},
                                                   {0,0,0,1},
                                                   {0,0,1,1},
                                                   {0,0,1,0},
