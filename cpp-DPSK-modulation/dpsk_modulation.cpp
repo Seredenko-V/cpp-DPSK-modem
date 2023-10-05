@@ -26,6 +26,22 @@ namespace dpsk_mod {
         return positionality_;
     }
 
+    void DPSKModulator::SetCarrierFrequency(int carrier_frequency) {
+        carrier_frequency_ = carrier_frequency;
+    }
+
+    uint32_t DPSKModulator::GetCarrierFrequency() const noexcept {
+        return carrier_frequency_;
+    }
+
+    void DPSKModulator::SetSamplingFrequency(int sampling_frequency) {
+        sampling_frequency_ = sampling_frequency;
+    }
+
+    uint32_t DPSKModulator::GetSamplingFrequency() const noexcept {
+        return sampling_frequency_;
+    }
+
     const PhaseDifferences& DPSKModulator::GetPhaseDifferences() const noexcept {
         return phase_differences_;
     }
@@ -49,6 +65,7 @@ namespace dpsk_mod {
     }
 
     std::vector<double> DPSKModulator::Modulation(const std::vector<bool>& bits, uint8_t reference_symbol) const {
-        return {};
+        vector<double> modulated_signal;
+        return modulated_signal;
     }
 } // namespace dpsk_mod

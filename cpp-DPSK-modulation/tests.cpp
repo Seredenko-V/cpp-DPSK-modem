@@ -171,7 +171,7 @@ namespace dpsk_mod {
                     {{1,3}, 90},  // 01, 11 -> 90 градусов
                     {{1,2}, 180}, // 01, 10 -> 180 градусов
 
-                    {{3,2}, 90}  // 11, 10 -> 90 градусов
+                    {{3,2}, 90}   // 11, 10 -> 90 градусов
                 };
                 assert(modulator.GetPhaseDifferences() == expected_phase_differences);
             }{

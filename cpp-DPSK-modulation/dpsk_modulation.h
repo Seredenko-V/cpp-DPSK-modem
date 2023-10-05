@@ -22,6 +22,18 @@ namespace dpsk_mod {
         /// Получить текущее количество позиций фаз
         uint8_t GetPositionality() const noexcept;
 
+        /// Установить значение несущей частоты
+        void SetCarrierFrequency(int carrier_frequency);
+
+        /// Получить значение несущей частоты
+        uint32_t GetCarrierFrequency() const noexcept;
+
+        /// Установить значение частоты дискретизации
+        void SetSamplingFrequency(int sampling_frequency);
+
+        /// Получить значение частоты дискретизации
+        uint32_t GetSamplingFrequency() const noexcept;
+
         /// Получить набор возможных сочетаний разностей фаз между двумя символами
         const PhaseDifferences& GetPhaseDifferences() const noexcept;
 
@@ -41,6 +53,8 @@ namespace dpsk_mod {
     private:
         PhaseDifferences phase_differences_; // разности фаз
         uint8_t positionality_ = 0; // позиционность ОФМ
+        uint32_t carrier_frequency_ = 0; // несущая частота
+        uint32_t sampling_frequency_ = 0; // частота дискретизации
     };
 
     namespace tests {
