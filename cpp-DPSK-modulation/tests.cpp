@@ -55,9 +55,25 @@ namespace math {
             cerr << "math::TestExtractNumBitsFormValue has passed"s << endl;
         }
 
+        void TestConvertationBinToDec() {
+            assert(ConvertationBinToDec({0}) == 0);
+            assert(ConvertationBinToDec({1}) == 1);
+            assert(ConvertationBinToDec({1,1}) == 3);
+            assert(ConvertationBinToDec({1,0,1,1,0,0,1,0}) == 178);
+            assert(ConvertationBinToDec({1,1,0,1,0,0,0,1,1,0,1,1,1,1,1,0,1,0,0,0,1,1,0,0,0,1}) == 54983217);
+            try {
+                ConvertationBinToDec(vector<bool>(255, 1));
+                assert(false);
+            } catch (const out_of_range& /*except*/) {
+                // последовательность бит не должна превышать 254
+            }
+            cerr << "math::TestConvertationBitsToInt has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
+            TestConvertationBinToDec();
             cerr << "math::AllTests has passed"s << endl;
         }
     } // namespace tests

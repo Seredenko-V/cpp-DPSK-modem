@@ -11,11 +11,12 @@ namespace math {
     int ExtractNumBitsFormValue(int value);
 
     /// Перевод из 2-ой в 10-ю систему счисления. Сложность: O(N)
-    int ConvertationBitsToInt(const std::vector<uint8_t>& bits) noexcept;
+    uint32_t ConvertationBinToDec(const std::vector<bool>& bits);
 
     namespace tests {
         void TestIsPowerOfTwo();
         void TestExtractNumBitsFormValue();
+        void TestConvertationBinToDec();
         void RunAllTests();
     } // namespace tests
 } // namespace math
