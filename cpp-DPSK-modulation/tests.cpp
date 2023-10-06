@@ -71,10 +71,19 @@ namespace math {
             cerr << "math::TestConvertationBitsToInt has passed"s << endl;
         }
 
+        void TestIsSameDouble() {
+            assert(IsSameDouble(0.000001, 0.000001));
+            assert(IsSameDouble(0.000001, 0.0000012156236)); // по умолчанию значения после 6 символа после запятой не учитываются
+            assert(!IsSameDouble(10.02353, 10.02352));
+            assert(IsSameDouble(15.02353, 15.0299999, 1e-2));
+            cerr << "math::TestIsSameDouble has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
             TestConvertationBinToDec();
+            TestIsSameDouble();
             cerr << "math::AllTests has passed"s << endl;
         }
     } // namespace tests
@@ -218,9 +227,87 @@ namespace dpsk_mod {
             cerr << "dpsk_mod::TestSetPositionality has passed"s << endl;
         }
 
+        void TestGetDifferentPhaseBetweenSymbols() {
+            DPSKModulator modulator;
+            { // ОФМ-2
+                modulator.SetPositionality(2);
+                constexpr double expected_difference = 180; // 180 градусов
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == expected_difference);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 0) == expected_difference);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 0) == 0);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 1) == 0);
+            }{ // ОФМ-4
+                modulator.SetPositionality(4);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == 90);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 0) == 90);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 3) == 180);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 2) == 270);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(2, 0) == 270);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 2) == 180);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(3, 2) == 90);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 1) == 0);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(2, 2) == 0);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(3, 3) == 0);
+            }{ // ОФМ-8
+                modulator.SetPositionality(8);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == 45);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 4) == 315);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 6) == 180);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 2) == 90);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(5, 4) == 45);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(7, 4) == 90);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(5, 5) == 0);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(6, 6) == 0);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(7, 7) == 0);
+            }{ // ОФМ-16
+                modulator.SetPositionality(16);
+                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 22.5));
+                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 12), 180));
+                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 8), 337.5));
+            }{ // ОФМ-64
+                modulator.SetPositionality(64);
+                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 5.625));
+                const vector<vector<bool>> kCodes = gray_code::MakeGrayCodes(64);
+                const uint32_t kDecValueInCenterCodes = math::ConvertationBinToDec(kCodes.at(kCodes.size() / 2));
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, kDecValueInCenterCodes) == 180);
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 32) == 354.375);
+            }{ // ОФМ-1024
+                modulator.SetPositionality(1024);
+                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 0.3515625));
+                const vector<vector<bool>> kCodes = gray_code::MakeGrayCodes(1024);
+                const uint32_t kDecValueInCenterCodes = math::ConvertationBinToDec(kCodes.at(kCodes.size() / 2));
+                assert(modulator.GetDifferentPhaseBetweenSymbols(0, kDecValueInCenterCodes) == 180);
+                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 512), 359.648438));
+            }
+            cerr << "dpsk_mod::TestGetDifferentPhaseBetweenSymbols has passed"s << endl;
+        }
+
+        void TestModulationOnlyBits() {
+//            DPSKModulator modulator;
+//            constexpr uint32_t kCarrierFrequency = 1000u;
+//            constexpr uint32_t kSamplingFrequency = 10'000u;
+//            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+//            { // проверка увеличения количества бит до кратности количеству бит в одном символе
+//                modulator.SetPositionality(2);
+//                vector<double> expected_mod_signal;
+//                vector<bool> bits{1,0,1,0,0,1,1};
+//                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+//                assert(real_mod_signal.size() == 7 * kSamplingFrequency / kCarrierFrequency);
+//            }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
+//                modulator.SetPositionality(4);
+//                vector<double> expected_mod_signal;
+//                vector<bool> bits{1,0,1,0,0,1,1};
+//                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+//                assert(real_mod_signal.size() == 8 * kSamplingFrequency / kCarrierFrequency);
+//            }
+//            cerr << "dpsk_mod::TestModulationOnlyBits has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestDefaultConstructor();
             TestSetPositionality();
+            TestGetDifferentPhaseBetweenSymbols();
+            //TestModulationOnlyBits();
             cerr << "dpsk_mod::AllTests has passed"s << endl;
         }
     } // namespace tests

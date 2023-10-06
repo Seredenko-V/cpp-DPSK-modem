@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 
+#include <iostream>
 using namespace std;
 
 namespace math {
@@ -31,5 +32,9 @@ namespace math {
             dec_value += bit * pow(2, exponents_counter--);
         }
         return dec_value;
+    }
+
+    bool IsSameDouble(double lhs, double rhs, double delta) {
+        return abs(lhs - rhs) <= delta;
     }
 } // namespace math
