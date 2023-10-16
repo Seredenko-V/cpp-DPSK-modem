@@ -12,6 +12,12 @@ namespace math {
 
     /// Перевод из 2-ой в 10-ю систему счисления. Сложность: O(N)
     uint32_t ConvertationBinToDec(const std::vector<bool>& bits);
+    /// Перевод из 2-ой в 10-ю систему счисления. Сложность: O(2*N)
+    uint32_t ConvertationBinToDec(std::vector<bool>::const_iterator left_bound, std::vector<bool>::const_iterator right_bound);
+
+    /// Перевод последовательности бит в последовательность символов 10 СС. Сложность: O(N).
+    /// Если bits.size() не кратен num_bits_per_symbol, то дописываются нули слева.
+    std::vector<uint32_t> ConvertationBitsToDecValues(const std::vector<bool>& bits, int32_t num_bits_per_symbol);
 
     /// Сравнение двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
     bool IsSameDouble(double lhs, double rhs, double delta = 1e-6);
@@ -20,6 +26,7 @@ namespace math {
         void TestIsPowerOfTwo();
         void TestExtractNumBitsFormValue();
         void TestConvertationBinToDec();
+        void TestConvertationBitsToDecValues();
         void TestIsSameDouble();
         void RunAllTests();
     } // namespace tests

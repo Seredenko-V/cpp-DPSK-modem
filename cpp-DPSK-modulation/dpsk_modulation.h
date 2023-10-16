@@ -41,11 +41,12 @@ namespace dpsk_mod {
         double GetDifferentPhaseBetweenSymbols(uint16_t left, uint16_t right) const;
 
         /// Модуляция одного символа
-        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t reference_symbol, uint16_t current_symbol) const;
+        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples,
+                                 uint16_t reference_symbol, uint16_t current_symbol, double phase) const;
 
         /// Модуляция последовательности бит. reference_symbol - опорный бит.
         /// Если количество бит не кратно установленной позиционности, то дописываются нулевые биты до ближайшей степени двойки
-        std::vector<double> Modulation(const std::vector<bool>& bits, uint16_t reference_symbol) const;
+        std::vector<double> Modulation(const std::vector<bool>& bits, uint16_t reference_symbol, double phase) const;
 
         /// Модуляция последовательности бит с указанием нужной позиционности. reference_symbol - опорный бит
     //    std::vector<double> Modulation(const std::vector<bool>& bits, uint8_t reference_symbol, uint8_t positionality);

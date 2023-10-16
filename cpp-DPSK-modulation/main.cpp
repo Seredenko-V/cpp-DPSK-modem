@@ -3,6 +3,7 @@
 #include "dpsk_modulation.h"
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 

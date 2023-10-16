@@ -14,6 +14,14 @@ ostream& operator<<(ostream& out, uint8_t value) {
 }
 
 template <typename Type>
+ostream& operator<<(ostream& out, const vector<Type>& vec) {
+    for (const Type& element : vec) {
+        out << element;
+    }
+    return out;
+}
+
+template <typename Type>
 ostream& operator<<(ostream& out, const vector<vector<Type>>& matrix) {
     for (size_t i = 0; i < matrix.size(); ++i) {
         for (size_t j = 0; j < matrix[i].size(); ++j) {
@@ -71,6 +79,46 @@ namespace math {
             cerr << "math::TestConvertationBitsToInt has passed"s << endl;
         }
 
+        void TestConvertationBitsToDecValues() {
+            { // 1 бит в символе
+                const vector<bool> kBits{1,0,1,1,1,0,0,1};
+                const vector<uint32_t> kSymbols{1,0,1,1,1,0,0,1};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 1));
+            }{
+                const vector<bool> kBits{1};
+                const vector<uint32_t> kSymbols{1};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 1));
+            }
+            { // 2 бита в символе
+                const vector<bool> kBits{1,0, 1,1, 1,0, 0,1};
+                const vector<uint32_t> kSymbols{2,3,2,1};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 2));
+            }{ // 2 бита в символе + дописывание одного бита для кратности 2
+                const vector<bool> kBits{1, 0,1, 1,1, 0,0, 1,0};
+                const vector<uint32_t> kSymbols{1,1,3,0,2};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 2));
+            }{ // 2 бита в символе + дописывание одного бита для кратности 2
+                const vector<bool> kBits{1};
+                const vector<uint32_t> kSymbols{1};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 2));
+            }
+            { // 3 бита в символе + дописывание одного бита для кратности 3
+                const vector<bool> kBits{1, 0,1,1, 1,0,1};
+                const vector<uint32_t> kSymbols{1,3,5};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 3));
+            }{
+                const vector<bool> kBits{1};
+                const vector<uint32_t> kSymbols{1};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 3));
+            }
+            { // 7 бит в символе
+                const vector<bool> kBits{1,0,1, 1,0,1,1,1,0,1};
+                const vector<uint32_t> kSymbols{5,93};
+                assert(kSymbols == ConvertationBitsToDecValues(kBits, 7));
+            }
+            cerr << "math::TestConvertationBitsToDecValues has passed"s << endl;
+        }
+
         void TestIsSameDouble() {
             assert(IsSameDouble(0.000001, 0.000001));
             assert(IsSameDouble(0.000001, 0.0000012156236)); // по умолчанию значения после 6 символа после запятой не учитываются
@@ -83,6 +131,7 @@ namespace math {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
             TestConvertationBinToDec();
+            TestConvertationBitsToDecValues();
             TestIsSameDouble();
             cerr << "math::AllTests has passed"s << endl;
         }

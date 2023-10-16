@@ -20,7 +20,7 @@ namespace math {
         return floor(log2(value)) + 1;
     }
 
-    uint32_t ConvertationBinToDec(const std::vector<bool>& bits) {
+    uint32_t ConvertationBinToDec(const vector<bool>& bits) {
         // Количество бит не должно превышать пределов uint8_t, иначе число в 10й СС будет слишком большим.
         // Например, если количество бит будет 224, то число в 10й СС равно 1.9255017829374E+67
         if (bits.size() >= 255) {
@@ -32,6 +32,41 @@ namespace math {
             dec_value += bit * pow(2, exponents_counter--);
         }
         return dec_value;
+    }
+
+    uint32_t ConvertationBinToDec(vector<bool>::const_iterator left_bound, vector<bool>::const_iterator right_bound) {
+        uint8_t exponents_counter = distance(left_bound, right_bound) - 1; // счетчик показателя степени
+        uint32_t dec_value = 0;
+        for (vector<bool>::const_iterator it = left_bound; it != right_bound; ++it) {
+            dec_value += *it * pow(2, exponents_counter--);
+        }
+        return dec_value;
+    }
+
+    vector<uint32_t> ConvertationBitsToDecValues(const vector<bool>& bits, int32_t num_bits_per_symbol) {
+        if (num_bits_per_symbol < 1) {
+            throw invalid_argument("Number bits per symbol less or equal 1"s);
+        }
+        vector<uint32_t> symbols((bits.size() - 1) / num_bits_per_symbol + 1); // количество символов определяется целочисленным делением с округлением вверх
+        uint16_t id_symbol = 0u;
+        const uint32_t kNumBitsLastSend = bits.size() % num_bits_per_symbol; // количество бит в последней посылке, если общее количество бит не кратно количеству бит в символе
+        uint32_t num_needed_bits = 0; // количество недостающих бит до кратности числу бит в одном символе
+
+        // первый символ с дописыванием нулей слева
+        if (kNumBitsLastSend > 0) {
+            num_needed_bits = num_bits_per_symbol - kNumBitsLastSend;
+            vector<bool> first_symbol_bits(num_bits_per_symbol);
+            // по умолчанию все элементы false (0), поэтому заполняется информационными битами только правая часть
+            for (uint32_t i = 0; i < num_needed_bits; ++i) {
+                first_symbol_bits[i + num_needed_bits] = bits[i];
+            }
+            symbols[id_symbol++] = ConvertationBinToDec(first_symbol_bits);
+        }
+        for (vector<bool>::const_iterator left_bound = bits.cbegin() + kNumBitsLastSend; left_bound != bits.cend(); left_bound += num_bits_per_symbol) {
+            vector<bool>::const_iterator right_bound = left_bound + num_bits_per_symbol;
+            symbols[id_symbol++] = ConvertationBinToDec(left_bound, right_bound);
+        }
+        return symbols;
     }
 
     bool IsSameDouble(double lhs, double rhs, double delta) {

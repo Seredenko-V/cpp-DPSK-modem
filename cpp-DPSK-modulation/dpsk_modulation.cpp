@@ -90,18 +90,19 @@ namespace dpsk_mod {
         }
     }
 
-    void DPSKModulator::ModulationOneSymbol(vector<double>::iterator begin_samples, vector<double>::iterator end_samples, uint16_t reference_symbol, uint16_t current_symbol) const {
+    void DPSKModulator::ModulationOneSymbol(vector<double>::iterator begin_samples, vector<double>::iterator end_samples,
+                                            uint16_t reference_symbol, uint16_t current_symbol, double phase) const {
         const double kCyclicFrequency = 2 * M_PI * carrier_frequency_; // циклическая частота
         const double kTimeStepBetweenSamples = 1.0 / sampling_frequency_; // шаг дискретизации во временной области
         const double kFixedCoefficient = kCyclicFrequency * kTimeStepBetweenSamples; // коэффициент, не изменяющийся в процессе дискретизации
         const double kPhaseDifferent = phase_differences_.find(make_pair(reference_symbol, current_symbol))->second;
         int count = 0;
         for (vector<double>::iterator it = begin_samples; it != end_samples; ++it) {
-            *it = amplitude_ * sin(kFixedCoefficient * count++ + 2/*разность фаз*/);
+            *it = amplitude_ * sin(kFixedCoefficient * count++ + phase + kPhaseDifferent/* текущая(последняя фаза) + разность фаз ОФМ */);
         }
     }
 
-    std::vector<double> DPSKModulator::Modulation(const std::vector<bool>& bits, uint16_t reference_symbol) const {
+    std::vector<double> DPSKModulator::Modulation(const std::vector<bool>& bits, uint16_t reference_symbol, double phase) const {
         // частота дискретизации должна быть кратна несущей частоте, чтобы в одном периоде было целое количество отсчетов
         if (sampling_frequency_ % carrier_frequency_) {
             throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
@@ -119,7 +120,11 @@ namespace dpsk_mod {
         vector<double> modulated_signal(kNumSpamlesInElementarySignal * (bits.size() + num_needed_bits));
 
         // общий случай
-        for (uint32_t bit_id = 0; bit_id < kGeneralCaseLimitBits; ++bit_id) {
+        for (uint32_t bit_id = 0; bit_id < kGeneralCaseLimitBits - 1; ++bit_id) {
+            vector<double>::iterator left_bound = modulated_signal.begin() + bit_id * kNumSpamlesInElementarySignal;
+            vector<double>::iterator right_bound = modulated_signal.begin() + bit_id * kNumSpamlesInElementarySignal + 1;
+            //ModulationOneSymbol(left_bound, right_bound);
+
             for (uint16_t sapmple_id = 0; sapmple_id < kNumSpamlesInElementarySignal; ++sapmple_id) {
                 modulated_signal[sapmple_id + bit_id * kNumSpamlesInElementarySignal] = 0;
             }
