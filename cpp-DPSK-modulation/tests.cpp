@@ -265,21 +265,42 @@ namespace dpsk_mod {
 
         namespace benchmark_modulation {
             vector<double> ModulationTwoPosDPSK(const vector<uint16_t>& symbols, uint32_t carrier_freq, uint32_t sampling_freq) {
+                constexpr uint16_t kNumPositions = 2;
                 ofstream fout("benchmark_modulation_pos2.txt"s);
                 const int kSizeOnePeriod = sampling_freq / carrier_freq;
                 vector<double> mod_signal(symbols.size() * kSizeOnePeriod);
-
                 double phase_shift = 0;
                 for (size_t i = 0; i < symbols.size(); ++i) {
-                    phase_shift += 2 * M_PI * symbols[i] / 2;
+                    phase_shift += 2 * M_PI * symbols[i] / kNumPositions;
                     for (int j = 0; j < kSizeOnePeriod; ++j) {
                         mod_signal[j + i * kSizeOnePeriod] = sin(2 * M_PI * carrier_freq / sampling_freq * j + phase_shift);
                     }
                 }
-
                 fout << mod_signal;
                 return mod_signal;
             }
+
+            // НУЖНО УЗНАТЬ КАК ДЕЛАЕТСЯ МОДУЛЯЦИЯ ПРИ ПОМОЩИ ЭТОЙ ФОРМУЛЫ
+            // https://vunivere.ru/work63579/page2
+//            vector<double> ModulationFourPosDPSK(const vector<uint16_t>& symbols, uint32_t carrier_freq, uint32_t sampling_freq) {
+//                constexpr uint16_t kNumPositions = 8;
+//                ofstream fout("benchmark_modulation_pos4.txt"s);
+//                const int kSizeOnePeriod = sampling_freq / carrier_freq;
+//                vector<double> mod_signal(symbols.size() * kSizeOnePeriod);
+//                double phase_shift = 0;
+//                for (size_t i = 0; i < symbols.size(); ++i) {
+//                    int symbol = symbols[i];
+//                    if (!(symbol % 2)) {
+//                        symbol = -(symbol + 1);
+//                    }
+//                    phase_shift += 2 * M_PI * symbol / kNumPositions;
+//                    for (int j = 0; j < kSizeOnePeriod; ++j) {
+//                        mod_signal[j + i * kSizeOnePeriod] = sin(2 * M_PI * carrier_freq / sampling_freq * j + phase_shift);
+//                    }
+//                }
+//                fout << mod_signal;
+//                return mod_signal;
+//            }
         } // namespace benchmark_modulation
 
         void TestModulationOnlyBits() {
@@ -309,8 +330,9 @@ namespace dpsk_mod {
                 vector<double> real_mod_signal = modulator.Modulation(bits);
                 ofstream fout("modulated_signal_pos4.txt"s);
                 fout << real_mod_signal;
-                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
-//                assert(real_mod_signal == benchmark_modulation::ModulationFourPosDPSK({2,3,1,0}, kCarrierFrequency, kSamplingFrequency));
+//                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
+//                vector<double> expected_signal = benchmark_modulation::ModulationFourPosDPSK({2,3,1,0}, kCarrierFrequency, kSamplingFrequency);
+//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
             }{
                 modulator.SetPositionality(8).SetPhase(0);
                 vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
@@ -318,7 +340,9 @@ namespace dpsk_mod {
                 ofstream fout("modulated_signal_pos8.txt"s);
                 fout << real_mod_signal;
                 assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
-//                assert(real_mod_signal == benchmark_modulation::ModulationEightPosDPSK({5,4,7,0}, kCarrierFrequency, kSamplingFrequency));
+//                vector<double> expected_signal = benchmark_modulation::ModulationFourPosDPSK({5,4,7,0}, kCarrierFrequency, kSamplingFrequency);
+//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
+
             }
             cerr << "dpsk_mod::TestModulationOnlyBits has passed"s << endl;
         }
