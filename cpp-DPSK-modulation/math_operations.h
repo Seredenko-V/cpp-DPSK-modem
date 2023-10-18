@@ -22,12 +22,29 @@ namespace math {
     /// Сравнение двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
     bool IsSameDouble(double lhs, double rhs, double delta = 1e-6);
 
+    template <typename Container>
+    bool IsSameContainersWithDouble(const Container& lhs, const Container& rhs, double delta = 1e-6) {
+        if (lhs.size() != rhs.size()) {
+            return false;
+        }
+        for (std::size_t i = 0; i < lhs.size(); ++i) {
+            if (!IsSameDouble(lhs.at(i), rhs.at(i), delta)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// Перевод углов в радианы
+    double DegreesToRadians(double angle_degree);
+
     namespace tests {
         void TestIsPowerOfTwo();
         void TestExtractNumBitsFormValue();
         void TestConvertationBinToDec();
         void TestConvertationBitsToDecValues();
         void TestIsSameDouble();
+        void TestDegreesToRadians();
         void RunAllTests();
     } // namespace tests
 } // namespace math

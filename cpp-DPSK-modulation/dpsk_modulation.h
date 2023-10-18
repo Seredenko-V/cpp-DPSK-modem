@@ -43,9 +43,6 @@ namespace dpsk_mod {
         /// Получить словарь символов с соответствующими сдвигами по фазе <символ, фазовый сдвиг>
         const std::map<uint16_t, double>& GetPhaseShifts() const noexcept;
 
-        /// Получить разность фаз между двумя символами
-        double GetDifferentPhaseBetweenSymbols(uint16_t left, uint16_t right) const;
-
         /// Модуляция одного символа
         void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase);
 
@@ -75,8 +72,7 @@ namespace dpsk_mod {
     namespace tests {
         void TestDefaultConstructor();
         void TestSetPositionality(); // установление позиционности с заполнением словаря разностей фаз
-        void TestGetDifferentPhaseBetweenSymbols(); // разность фаз между двумя символами
-        void TestModulationOnlyBits(); // перегрузка, принимающая только вектор бит и опорный символ
+        void TestModulationOnlyBits(); // перегрузка, принимающая только вектор бит
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_mod

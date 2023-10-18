@@ -72,4 +72,8 @@ namespace math {
     bool IsSameDouble(double lhs, double rhs, double delta) {
         return abs(lhs - rhs) <= delta;
     }
+
+    double DegreesToRadians(double angle_degree) {
+        return angle_degree * M_PI / 180;
+    }
 } // namespace math

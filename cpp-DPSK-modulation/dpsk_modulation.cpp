@@ -65,24 +65,6 @@ namespace dpsk_mod {
         return phase_differences_;
     }
 
-    /// Получить разность фаз между двумя символами
-    double DPSKModulator::GetDifferentPhaseBetweenSymbols(uint16_t left, uint16_t right) const {
-//        if (left == right) {
-//            return 0;
-//        }
-//        map<uint16_t, double>::const_iterator ptr_different = phase_differences_.find(make_pair(left, right));
-//        // поиск "в обратном направлении"
-//        if (ptr_different == phase_differences_.end()) {
-//            ptr_different = phase_differences_.find(make_pair(right, left));
-//        }
-//        // такого сдвига нет
-//        if (ptr_different == phase_differences_.end()) {
-//            throw invalid_argument("Phase different between \""s + to_string(left) + "\" and \""s + to_string(right) + "\" symbols not found"s);
-//        }
-//        return ptr_different->second;
-        return {};
-    }
-
     void DPSKModulator::FillPhaseDifferences() {
         phase_differences_.clear();
         static constexpr double kTotalAngle = 360; // количество градусов на окружности
@@ -102,12 +84,11 @@ namespace dpsk_mod {
         const double kFixedCoefficient = kCyclicFrequency * kTimeStepBetweenSamples; // коэффициент, не изменяющийся в процессе дискретизации
         const double kPhaseDifferent = phase_differences_.find(current_symbol)->second;
         int count = 0;
-//        phase += 2 * M_PI * current_symbol / positionality_;
-        phase += kPhaseDifferent * M_PI / 180;
+//        phase += 2 * M_PI * current_symbol / positionality_; // возникают трудности при количестве позиции ОФМ больше 2
+        phase += math::DegreesToRadians(kPhaseDifferent);
         for (vector<double>::iterator it = begin_samples; it != end_samples; ++it) {
             *it = amplitude_ * sin(kFixedCoefficient * count++ + phase);
         }
-
     }
 
     vector<double> DPSKModulator::Modulation(const vector<bool>& bits) {
@@ -118,7 +99,6 @@ namespace dpsk_mod {
         const uint32_t kNumBitsInOneSymbol = log2(positionality_); // количество бит в одном символе
         vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);
         const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / carrier_frequency_; // количество отсчетов в одном модулированном символе
-
         vector<double> modulated_signal(kNumSpamlesInElementarySignal * symbols.size());
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
