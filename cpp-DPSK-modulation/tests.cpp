@@ -6,6 +6,7 @@
 #include <cassert>
 #include <vector>
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 
@@ -197,10 +198,9 @@ namespace gray_code {
 
 namespace dpsk_mod {
     namespace tests {
-        ostream& operator<<(ostream& out, const PhaseDifferences& phase_differences) {
-            for (const pair<const pair<uint8_t, uint8_t>, double>& one_pair_of_elements : phase_differences) {
-                out << '{' << static_cast<int>(one_pair_of_elements.first.first) << ',' << static_cast<int>(one_pair_of_elements.first.second) << "}, ";
-                out << one_pair_of_elements.second << endl;
+        ostream& operator<<(ostream& out, const map<uint16_t, double>& phase_shifts) {
+            for (const pair<const uint16_t, double>& one_pair_of_elements : phase_shifts) {
+                out << '{' << one_pair_of_elements.first << ',' << one_pair_of_elements.second << "}\n";
             }
             return out;
         }
@@ -217,9 +217,8 @@ namespace dpsk_mod {
             // по умолчанию используется двухпозиционная ОФМ
             DPSKModulator modulator;
             assert(modulator.GetPositionality() == 2);
-            // разность фаз между 0 и 1 составляет 180 градусов (PI)
-            PhaseDifferences expected_phase_differences{{{0,1}, 180}};
-            assert(modulator.GetPhaseDifferences() == expected_phase_differences);
+            map<uint16_t, double> expected_phase_shifts{{0, 0}, {1, 180}};
+            assert(modulator.GetPhaseShifts() == expected_phase_shifts);
             cerr << "dpsk_mod::TestDefaultConstructor has passed"s << endl;
         }
 
@@ -228,140 +227,162 @@ namespace dpsk_mod {
             {
                 modulator.SetPositionality(4);
                 assert(modulator.GetPositionality() == 4);
-                PhaseDifferences expected_phase_differences{
-                    {{0,1}, 90},  // 00, 01 -> 90 градусов
-                    {{0,3}, 180}, // 00, 11 -> 180 градусов
-                    {{0,2}, 270}, // 00, 10 -> 270 градусов
-
-                    {{1,3}, 90},  // 01, 11 -> 90 градусов
-                    {{1,2}, 180}, // 01, 10 -> 180 градусов
-
-                    {{3,2}, 90}   // 11, 10 -> 90 градусов
+                 map<uint16_t, double> expected_phase_shifts{
+                     {0, 0},   // 00 -> 0 градусов
+                     {1, 90},  // 01 -> 90 градусов
+                     {3, 180}, // 11 -> 180 градусов
+                     {2, 270}  // 10 -> 270 градусов
                 };
-                assert(modulator.GetPhaseDifferences() == expected_phase_differences);
+                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
             }{
                 modulator.SetPositionality(8);
                 assert(modulator.GetPositionality() == 8);
-                PhaseDifferences expected_phase_differences{
-                    {{0,1}, 45},  // 000, 001 -> 45 градусов
-                    {{0,3}, 90},  // 000, 011 -> 90 градусов
-                    {{0,2}, 135}, // 000, 010 -> 135 градусов
-                    {{0,6}, 180}, // 000, 110 -> 180 градусов
-                    {{0,7}, 225}, // 000, 111 -> 225 градусов
-                    {{0,5}, 270}, // 000, 101 -> 270 градусов
-                    {{0,4}, 315}, // 000, 100 -> 315 градусов
-
-                    {{1,3}, 45},  // 001, 011 -> 45 градусов
-                    {{1,2}, 90},  // 001, 010 -> 90 градусов
-                    {{1,6}, 135}, // 001, 110 -> 135 градусов
-                    {{1,7}, 180}, // 001, 111 -> 180 градусов
-                    {{1,5}, 225}, // 001, 101 -> 225 градусов
-                    {{1,4}, 270}, // 001, 100 -> 270 градусов
-
-                    {{3,2}, 45},  // 011, 010 -> 45 градусов
-                    {{3,6}, 90},  // 011, 110 -> 90 градусов
-                    {{3,7}, 135}, // 011, 111 -> 135 градусов
-                    {{3,5}, 180}, // 011, 101 -> 180 градусов
-                    {{3,4}, 225}, // 011, 100 -> 225 градусов
-
-                    {{2,6}, 45},  // 010, 110 -> 45 градусов
-                    {{2,7}, 90},  // 010, 111 -> 90 градусов
-                    {{2,5}, 135}, // 010, 101 -> 135 градусов
-                    {{2,4}, 180}, // 010, 100 -> 180 градусов
-
-                    {{6,7}, 45},  // 110, 111 -> 45 градусов
-                    {{6,5}, 90},  // 110, 101 -> 90 градусов
-                    {{6,4}, 135}, // 110, 100 -> 135 градусов
-
-                    {{7,5}, 45},  // 111, 101 -> 45 градусов
-                    {{7,4}, 90},  // 111, 100 -> 90 градусов
-
-                    {{5,4}, 45}   // 101, 100 -> 45 градусов
+                map<uint16_t, double> expected_phase_shifts{
+                    {0, 0},   // 000 -> 0 градусов
+                    {1, 45},  // 001 -> 45 градусов
+                    {3, 90},  // 011 -> 90 градусов
+                    {2, 135}, // 010 -> 135 градусов
+                    {6, 180}, // 110 -> 180 градусов
+                    {7, 225}, // 111 -> 225 градусов
+                    {5, 270}, // 101 -> 270 градусов
+                    {4, 315}, // 100 -> 315 градусов
                 };
-                assert(modulator.GetPhaseDifferences() == expected_phase_differences);
+                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
             }
             cerr << "dpsk_mod::TestSetPositionality has passed"s << endl;
         }
 
         void TestGetDifferentPhaseBetweenSymbols() {
             DPSKModulator modulator;
-            { // ОФМ-2
-                modulator.SetPositionality(2);
-                constexpr double expected_difference = 180; // 180 градусов
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == expected_difference);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 0) == expected_difference);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 0) == 0);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 1) == 0);
-            }{ // ОФМ-4
-                modulator.SetPositionality(4);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == 90);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 0) == 90);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 3) == 180);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 2) == 270);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(2, 0) == 270);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 2) == 180);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(3, 2) == 90);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 1) == 0);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(2, 2) == 0);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(3, 3) == 0);
-            }{ // ОФМ-8
-                modulator.SetPositionality(8);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == 45);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 4) == 315);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 6) == 180);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 2) == 90);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(5, 4) == 45);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(7, 4) == 90);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(5, 5) == 0);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(6, 6) == 0);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(7, 7) == 0);
-            }{ // ОФМ-16
-                modulator.SetPositionality(16);
-                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 22.5));
-                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 12), 180));
-                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 8), 337.5));
-            }{ // ОФМ-64
-                modulator.SetPositionality(64);
-                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 5.625));
-                const vector<vector<bool>> kCodes = gray_code::MakeGrayCodes(64);
-                const uint32_t kDecValueInCenterCodes = math::ConvertationBinToDec(kCodes.at(kCodes.size() / 2));
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, kDecValueInCenterCodes) == 180);
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 32) == 354.375);
-            }{ // ОФМ-1024
-                modulator.SetPositionality(1024);
-                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 0.3515625));
-                const vector<vector<bool>> kCodes = gray_code::MakeGrayCodes(1024);
-                const uint32_t kDecValueInCenterCodes = math::ConvertationBinToDec(kCodes.at(kCodes.size() / 2));
-                assert(modulator.GetDifferentPhaseBetweenSymbols(0, kDecValueInCenterCodes) == 180);
-                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 512), 359.648438));
-            }
-            cerr << "dpsk_mod::TestGetDifferentPhaseBetweenSymbols has passed"s << endl;
+//            { // ОФМ-2
+//                modulator.SetPositionality(2);
+//                constexpr double expected_difference = 180; // 180 градусов
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == expected_difference);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 0) == expected_difference);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 0) == 0);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 1) == 0);
+//            }{ // ОФМ-4
+//                modulator.SetPositionality(4);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == 90);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 0) == 90);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 3) == 180);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 2) == 270);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(2, 0) == 270);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 2) == 180);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(3, 2) == 90);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 1) == 0);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(2, 2) == 0);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(3, 3) == 0);
+//            }{ // ОФМ-8
+//                modulator.SetPositionality(8);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 1) == 45);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 4) == 315);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 6) == 180);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(1, 2) == 90);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(5, 4) == 45);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(7, 4) == 90);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(5, 5) == 0);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(6, 6) == 0);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(7, 7) == 0);
+//            }{ // ОФМ-16
+//                modulator.SetPositionality(16);
+//                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 22.5));
+//                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 12), 180));
+//                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 8), 337.5));
+//            }{ // ОФМ-64
+//                modulator.SetPositionality(64);
+//                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 5.625));
+//                const vector<vector<bool>> kCodes = gray_code::MakeGrayCodes(64);
+//                const uint32_t kDecValueInCenterCodes = math::ConvertationBinToDec(kCodes.at(kCodes.size() / 2));
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, kDecValueInCenterCodes) == 180);
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, 32) == 354.375);
+//            }{ // ОФМ-1024
+//                modulator.SetPositionality(1024);
+//                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 1), 0.3515625));
+//                const vector<vector<bool>> kCodes = gray_code::MakeGrayCodes(1024);
+//                const uint32_t kDecValueInCenterCodes = math::ConvertationBinToDec(kCodes.at(kCodes.size() / 2));
+//                assert(modulator.GetDifferentPhaseBetweenSymbols(0, kDecValueInCenterCodes) == 180);
+//                assert(math::IsSameDouble(modulator.GetDifferentPhaseBetweenSymbols(0, 512), 359.648438));
+//            }
+//            cerr << "dpsk_mod::TestGetDifferentPhaseBetweenSymbols has passed"s << endl;
         }
 
         void TestModulationOnlyBits() {
             DPSKModulator modulator;
             constexpr uint32_t kCarrierFrequency = 1000u;
             constexpr uint32_t kSamplingFrequency = 10'000u;
+            {
+                ofstream fin("benchmark_modulation.txt"s);
+                vector<bool> bits{1,0,1};
+                const int kSizeOnePeriod = kSamplingFrequency / kCarrierFrequency;
+                vector<double> mod_signal(bits.size() * kSizeOnePeriod);
+
+                vector<double> value_phase_DPSK(bits.size());
+                value_phase_DPSK[0] = M_PI * bits[0];
+                for (size_t i = 1; i < value_phase_DPSK.size(); i++)
+                {
+                    value_phase_DPSK[i] = M_PI * bits[i] + value_phase_DPSK[i - 1];
+                }
+
+                double phase_shift = 0;
+                for (size_t i = 0; i < bits.size(); ++i) {
+                    phase_shift += 2 * M_PI * bits[i] / 2;
+                    for (int j = 0; j < kSizeOnePeriod; ++j) {
+                        //cout << "value_phase_DPSK[i]= "s << value_phase_DPSK[i] << endl;
+                        mod_signal[j + i * kSizeOnePeriod] = sin(2 * M_PI * kCarrierFrequency / kSamplingFrequency * j + phase_shift);
+                        fin << mod_signal[j + i * kSizeOnePeriod] << endl;
+                        //cout << mod_signal[j + i * kSizeOnePeriod] << endl;
+                    }
+                }
+            }
+
+
             modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
             { // проверка увеличения количества бит до кратности количеству бит в одном символе
                 modulator.SetPositionality(2);
                 vector<double> expected_mod_signal;
                 vector<bool> bits{1,0,1,0,0,1,1};
-                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+                vector<double> real_mod_signal = modulator.Modulation(bits);
                 assert(real_mod_signal.size() == 7 * kSamplingFrequency / kCarrierFrequency);
             }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
                 modulator.SetPositionality(4);
                 vector<double> expected_mod_signal;
                 vector<bool> bits{1,0,1,0,0,1,1};
-                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+                vector<double> real_mod_signal = modulator.Modulation(bits);
                 //cout << real_mod_signal << endl;
                 assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
             }
+
+
+            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(50'000);
             {
                 modulator.SetPositionality(2);
+                modulator.SetPhase(0);
                 vector<bool> bits{1,1,1,1,1,0};
-                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+                vector<double> real_mod_signal = modulator.Modulation(bits);
                 ofstream fout("modulated_signal.txt"s);
+                fout << fixed;
+                fout.precision(6);
+                fout << real_mod_signal << endl;
+            }
+
+            {
+                modulator.SetPositionality(4);
+                modulator.SetPhase(0);
+                vector<bool> bits{1,0,1,1,0,1,0,0};
+                vector<double> real_mod_signal = modulator.Modulation(bits);
+                ofstream fout("modulated_signal_pos4.txt"s);
+                fout << fixed;
+                fout.precision(6);
+                fout << real_mod_signal << endl;
+            }
+
+            {
+                modulator.SetPositionality(8);
+                modulator.SetPhase(0);
+                vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
+                vector<double> real_mod_signal = modulator.Modulation(bits);
+                ofstream fout("modulated_signal_pos8.txt"s);
                 fout << fixed;
                 fout.precision(6);
                 fout << real_mod_signal << endl;

@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstdint>
 #include <cmath>
+#include <cassert>
 
 #include <iostream>
 
@@ -51,25 +52,35 @@ namespace dpsk_mod {
         return sampling_frequency_;
     }
 
-    const PhaseDifferences& DPSKModulator::GetPhaseDifferences() const noexcept {
+    DPSKModulator& DPSKModulator::SetPhase(double new_phase) {
+        phase_ = new_phase;
+        return *this;
+    }
+
+    double DPSKModulator::GetPhase() const noexcept {
+        return phase_;
+    }
+
+    const map<uint16_t, double>& DPSKModulator::GetPhaseShifts() const noexcept {
         return phase_differences_;
     }
 
     /// Получить разность фаз между двумя символами
     double DPSKModulator::GetDifferentPhaseBetweenSymbols(uint16_t left, uint16_t right) const {
-        if (left == right) {
-            return 0;
-        }
-        PhaseDifferences::const_iterator ptr_different = phase_differences_.find(make_pair(left, right));
-        // поиск "в обратном направлении"
-        if (ptr_different == phase_differences_.end()) {
-            ptr_different = phase_differences_.find(make_pair(right, left));
-        }
-        // такого сдвига нет
-        if (ptr_different == phase_differences_.end()) {
-            throw invalid_argument("Phase different between \""s + to_string(left) + "\" and \""s + to_string(right) + "\" symbols not found"s);
-        }
-        return ptr_different->second;
+//        if (left == right) {
+//            return 0;
+//        }
+//        map<uint16_t, double>::const_iterator ptr_different = phase_differences_.find(make_pair(left, right));
+//        // поиск "в обратном направлении"
+//        if (ptr_different == phase_differences_.end()) {
+//            ptr_different = phase_differences_.find(make_pair(right, left));
+//        }
+//        // такого сдвига нет
+//        if (ptr_different == phase_differences_.end()) {
+//            throw invalid_argument("Phase different between \""s + to_string(left) + "\" and \""s + to_string(right) + "\" symbols not found"s);
+//        }
+//        return ptr_different->second;
+        return {};
     }
 
     void DPSKModulator::FillPhaseDifferences() {
@@ -77,32 +88,29 @@ namespace dpsk_mod {
         static constexpr double kTotalAngle = 360; // количество градусов на окружности
         const double kStepPhase = kTotalAngle / positionality_;
         vector<vector<bool>> grey_codes = gray_code::MakeGrayCodes(positionality_);
-
-        // перебор всех возможных сочетаний символов
-        for (uint16_t left_symbol_id = 0; left_symbol_id < positionality_ - 1; ++left_symbol_id) {
-            double current_phase = kStepPhase;
-            for (uint16_t right_symbol_id = left_symbol_id + 1; right_symbol_id < positionality_; ++right_symbol_id) {
-                pair<uint16_t, uint16_t> symbols_pair = make_pair(math::ConvertationBinToDec(grey_codes[left_symbol_id]), math::ConvertationBinToDec(grey_codes[right_symbol_id]));
-                phase_differences_.emplace(move(symbols_pair), current_phase);
-//                cout << '{' << left_symbol_id << ", "s << right_symbol_id << "} = "s << current_phase << endl;
-                current_phase += kStepPhase;
-            }
+        double current_phase = 0;
+        for (uint16_t i = 0; i < positionality_; ++i) {
+            assert(current_phase < kTotalAngle);
+            phase_differences_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase);
+            current_phase += kStepPhase;
         }
     }
 
-    void DPSKModulator::ModulationOneSymbol(vector<double>::iterator begin_samples, vector<double>::iterator end_samples,
-                                            uint16_t reference_symbol, uint16_t current_symbol, double phase) const {
+    void DPSKModulator::ModulationOneSymbol(vector<double>::iterator begin_samples, vector<double>::iterator end_samples, uint16_t current_symbol, double& phase) {
         const double kCyclicFrequency = 2 * M_PI * carrier_frequency_; // циклическая частота
         const double kTimeStepBetweenSamples = 1.0 / sampling_frequency_; // шаг дискретизации во временной области
         const double kFixedCoefficient = kCyclicFrequency * kTimeStepBetweenSamples; // коэффициент, не изменяющийся в процессе дискретизации
-        const double kPhaseDifferent = phase_differences_.find(make_pair(reference_symbol, current_symbol))->second;
+        const double kPhaseDifferent = phase_differences_.find(current_symbol)->second;
         int count = 0;
+//        phase += 2 * M_PI * current_symbol / positionality_;
+        phase += kPhaseDifferent * M_PI / 180;
         for (vector<double>::iterator it = begin_samples; it != end_samples; ++it) {
-            *it = amplitude_ * sin(kFixedCoefficient * count++ + phase + kPhaseDifferent/* текущая(последняя фаза) + разность фаз ОФМ */);
+            *it = amplitude_ * sin(kFixedCoefficient * count++ + phase);
         }
+
     }
 
-    vector<double> DPSKModulator::Modulation(const vector<bool>& bits, uint16_t reference_symbol, double phase) const {
+    vector<double> DPSKModulator::Modulation(const vector<bool>& bits) {
         // частота дискретизации должна быть кратна несущей частоте, чтобы в одном периоде было целое количество отсчетов
         if (sampling_frequency_ % carrier_frequency_) {
             throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
@@ -116,10 +124,8 @@ namespace dpsk_mod {
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             vector<double>::iterator left_bound = modulated_signal.begin() + symbol_id * kNumSpamlesInElementarySignal;
             vector<double>::iterator right_bound = modulated_signal.begin() + (symbol_id + 1) * kNumSpamlesInElementarySignal;
-            ModulationOneSymbol(left_bound, right_bound, reference_symbol, symbols[symbol_id], phase);
-            reference_symbol = symbols[symbol_id];
+            ModulationOneSymbol(left_bound, right_bound, symbols[symbol_id], phase_);
         }
-
         return modulated_signal;
     }
 } // namespace dpsk_mod

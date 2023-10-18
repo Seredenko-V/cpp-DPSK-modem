@@ -8,7 +8,7 @@
 //std::vector<double> ModulationElementrySignal(const std::vector<uint8_t>& bits, uint8_t reference_bit);
 
 namespace dpsk_mod {
-    using PhaseDifferences = std::map<std::pair<uint16_t, uint16_t>, double>;
+    //using PhaseDifferences = std::map<std::pair<uint16_t, uint16_t>, double>;
 
     /// Модулятор относительной фазовой модуляции (ОФМ) любой позиционности, являющейся степенью двойки
     class DPSKModulator {
@@ -34,19 +34,24 @@ namespace dpsk_mod {
         /// Получить значение частоты дискретизации
         uint32_t GetSamplingFrequency() const noexcept;
 
-        /// Получить набор возможных сочетаний разностей фаз между двумя символами
-        const PhaseDifferences& GetPhaseDifferences() const noexcept;
+        /// Установить текущее значение фазы
+        DPSKModulator& SetPhase(double new_phase);
+
+        /// Получить текущее значение фазы
+        double GetPhase() const noexcept;
+
+        /// Получить словарь символов с соответствующими сдвигами по фазе <символ, фазовый сдвиг>
+        const std::map<uint16_t, double>& GetPhaseShifts() const noexcept;
 
         /// Получить разность фаз между двумя символами
         double GetDifferentPhaseBetweenSymbols(uint16_t left, uint16_t right) const;
 
         /// Модуляция одного символа
-        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples,
-                                 uint16_t reference_symbol, uint16_t current_symbol, double phase) const;
+        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase);
 
-        /// Модуляция последовательности бит. reference_symbol - опорный бит.
+        /// Модуляция последовательности бит.
         /// Если количество бит не кратно установленной позиционности, то дописываются нулевые биты до ближайшей степени двойки
-        std::vector<double> Modulation(const std::vector<bool>& bits, uint16_t reference_symbol, double phase = 0) const;
+        std::vector<double> Modulation(const std::vector<bool>& bits);
 
         /// Модуляция последовательности бит с указанием нужной позиционности. reference_symbol - опорный бит
     //    std::vector<double> Modulation(const std::vector<bool>& bits, uint8_t reference_symbol, uint8_t positionality);
@@ -59,11 +64,12 @@ namespace dpsk_mod {
         void FillPhaseDifferences();
 
     private:
-        PhaseDifferences phase_differences_; // разности фаз между символами
+        std::map<uint16_t, double>  phase_differences_; // разности фаз между символами
         uint16_t positionality_ = 0; // позиционность ОФМ
         uint32_t carrier_frequency_ = 0; // несущая частота
         uint32_t sampling_frequency_ = 0; // частота дискретизации
         double amplitude_ = 1.0; // амплитуда колебания
+        double phase_ = 0; // текущая фаза
     };
 
     namespace tests {
