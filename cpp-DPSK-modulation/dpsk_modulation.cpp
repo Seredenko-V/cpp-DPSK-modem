@@ -102,38 +102,22 @@ namespace dpsk_mod {
         }
     }
 
-    std::vector<double> DPSKModulator::Modulation(const std::vector<bool>& bits, uint16_t reference_symbol, double phase) const {
+    vector<double> DPSKModulator::Modulation(const vector<bool>& bits, uint16_t reference_symbol, double phase) const {
         // частота дискретизации должна быть кратна несущей частоте, чтобы в одном периоде было целое количество отсчетов
         if (sampling_frequency_ % carrier_frequency_) {
             throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
         }
         const uint32_t kNumBitsInOneSymbol = log2(positionality_); // количество бит в одном символе
-        const uint32_t kNumBitsLastSend = bits.size() % kNumBitsInOneSymbol; // количество бит в последней посылке, если общее количество бит не кратно количеству бит в символе
-        uint32_t num_needed_bits = 0; // количество недостающих бит до кратности числу бит в одном символе
-        if (kNumBitsLastSend > 0) {
-            num_needed_bits = kNumBitsInOneSymbol - kNumBitsLastSend;
-        }
+        vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);
         const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / carrier_frequency_; // количество отсчетов в одном модулированном символе
 
+        vector<double> modulated_signal(kNumSpamlesInElementarySignal * symbols.size());
 
-        const uint32_t kGeneralCaseLimitBits = bits.size() - kNumBitsLastSend; // количество бит, обрабатываемых общим случаем
-        vector<double> modulated_signal(kNumSpamlesInElementarySignal * (bits.size() + num_needed_bits));
-
-        // общий случай
-        for (uint32_t bit_id = 0; bit_id < kGeneralCaseLimitBits - 1; ++bit_id) {
-            vector<double>::iterator left_bound = modulated_signal.begin() + bit_id * kNumSpamlesInElementarySignal;
-            vector<double>::iterator right_bound = modulated_signal.begin() + bit_id * kNumSpamlesInElementarySignal + 1;
-            //ModulationOneSymbol(left_bound, right_bound);
-
-            for (uint16_t sapmple_id = 0; sapmple_id < kNumSpamlesInElementarySignal; ++sapmple_id) {
-                modulated_signal[sapmple_id + bit_id * kNumSpamlesInElementarySignal] = 0;
-            }
-        }
-
-        // модуляция последнего символа, если количество модулируемых бит не кратно позиционности
-        // недостающие биты не нужно хранить, просто модулируем нули. Нули нужно дописывать в последней посылке слева
-        for (uint32_t bit_id = 0; bit_id < kNumBitsInOneSymbol; ++bit_id) {
-
+        for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
+            vector<double>::iterator left_bound = modulated_signal.begin() + symbol_id * kNumSpamlesInElementarySignal;
+            vector<double>::iterator right_bound = modulated_signal.begin() + (symbol_id + 1) * kNumSpamlesInElementarySignal;
+            ModulationOneSymbol(left_bound, right_bound, reference_symbol, symbols[symbol_id], phase);
+            reference_symbol = symbols[symbol_id];
         }
 
         return modulated_signal;

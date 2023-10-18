@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cassert>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -23,10 +24,8 @@ ostream& operator<<(ostream& out, const vector<Type>& vec) {
 
 template <typename Type>
 ostream& operator<<(ostream& out, const vector<vector<Type>>& matrix) {
-    for (size_t i = 0; i < matrix.size(); ++i) {
-        for (size_t j = 0; j < matrix[i].size(); ++j) {
-            out << matrix[i][j];
-        }
+    for (const vector<Type>& line : matrix) {
+        out << line;
         out << endl;
     }
     return out;
@@ -206,6 +205,14 @@ namespace dpsk_mod {
             return out;
         }
 
+        template <typename Type>
+        ostream& operator<<(ostream& out, const vector<Type>& vec) {
+            for (const Type& element : vec) {
+                out << element << endl;
+            }
+            return out;
+        }
+
         void TestDefaultConstructor() {
             // по умолчанию используется двухпозиционная ОФМ
             DPSKModulator modulator;
@@ -332,31 +339,41 @@ namespace dpsk_mod {
         }
 
         void TestModulationOnlyBits() {
-//            DPSKModulator modulator;
-//            constexpr uint32_t kCarrierFrequency = 1000u;
-//            constexpr uint32_t kSamplingFrequency = 10'000u;
-//            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
-//            { // проверка увеличения количества бит до кратности количеству бит в одном символе
-//                modulator.SetPositionality(2);
-//                vector<double> expected_mod_signal;
-//                vector<bool> bits{1,0,1,0,0,1,1};
-//                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
-//                assert(real_mod_signal.size() == 7 * kSamplingFrequency / kCarrierFrequency);
-//            }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
-//                modulator.SetPositionality(4);
-//                vector<double> expected_mod_signal;
-//                vector<bool> bits{1,0,1,0,0,1,1};
-//                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
-//                assert(real_mod_signal.size() == 8 * kSamplingFrequency / kCarrierFrequency);
-//            }
-//            cerr << "dpsk_mod::TestModulationOnlyBits has passed"s << endl;
+            DPSKModulator modulator;
+            constexpr uint32_t kCarrierFrequency = 1000u;
+            constexpr uint32_t kSamplingFrequency = 10'000u;
+            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            { // проверка увеличения количества бит до кратности количеству бит в одном символе
+                modulator.SetPositionality(2);
+                vector<double> expected_mod_signal;
+                vector<bool> bits{1,0,1,0,0,1,1};
+                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+                assert(real_mod_signal.size() == 7 * kSamplingFrequency / kCarrierFrequency);
+            }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
+                modulator.SetPositionality(4);
+                vector<double> expected_mod_signal;
+                vector<bool> bits{1,0,1,0,0,1,1};
+                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+                //cout << real_mod_signal << endl;
+                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
+            }
+            {
+                modulator.SetPositionality(2);
+                vector<bool> bits{1,1,1,1,1,0};
+                vector<double> real_mod_signal = modulator.Modulation(bits, 0);
+                ofstream fout("modulated_signal.txt"s);
+                fout << fixed;
+                fout.precision(6);
+                fout << real_mod_signal << endl;
+            }
+            cerr << "dpsk_mod::TestModulationOnlyBits has passed"s << endl;
         }
 
         void RunAllTests() {
             TestDefaultConstructor();
             TestSetPositionality();
             TestGetDifferentPhaseBetweenSymbols();
-            //TestModulationOnlyBits();
+            TestModulationOnlyBits();
             cerr << "dpsk_mod::AllTests has passed"s << endl;
         }
     } // namespace tests

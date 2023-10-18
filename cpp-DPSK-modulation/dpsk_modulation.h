@@ -46,7 +46,7 @@ namespace dpsk_mod {
 
         /// Модуляция последовательности бит. reference_symbol - опорный бит.
         /// Если количество бит не кратно установленной позиционности, то дописываются нулевые биты до ближайшей степени двойки
-        std::vector<double> Modulation(const std::vector<bool>& bits, uint16_t reference_symbol, double phase) const;
+        std::vector<double> Modulation(const std::vector<bool>& bits, uint16_t reference_symbol, double phase = 0) const;
 
         /// Модуляция последовательности бит с указанием нужной позиционности. reference_symbol - опорный бит
     //    std::vector<double> Modulation(const std::vector<bool>& bits, uint8_t reference_symbol, uint8_t positionality);
@@ -70,8 +70,6 @@ namespace dpsk_mod {
         void TestDefaultConstructor();
         void TestSetPositionality(); // установление позиционности с заполнением словаря разностей фаз
         void TestGetDifferentPhaseBetweenSymbols(); // разность фаз между двумя символами
-
-
         void TestModulationOnlyBits(); // перегрузка, принимающая только вектор бит и опорный символ
         void RunAllTests();
     } // namespace tests
