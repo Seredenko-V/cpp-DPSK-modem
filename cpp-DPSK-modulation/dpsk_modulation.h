@@ -23,6 +23,12 @@ namespace dpsk_mod {
         /// Получить значение несущей частоты
         uint32_t GetCarrierFrequency() const noexcept;
 
+        /// Установить значение промежуточной частоты (на случай не кратности частоты дискретизации несущей)
+        DPSKModulator& SetIntermediateFrequency(int intermediate_frequency);
+
+        /// Получить значение промежуточной частоты
+        uint32_t GetIntermediateFrequency() const noexcept;
+
         /// Установить значение частоты дискретизации
         DPSKModulator& SetSamplingFrequency(int sampling_frequency);
 
@@ -66,7 +72,7 @@ namespace dpsk_mod {
         uint16_t positionality_ = 0u; // позиционность ОФМ
         uint32_t carrier_frequency_ = 0u; // несущая частота
         uint32_t sampling_frequency_ = 0u; // частота дискретизации
-        uint32_t intermediate_carrier_frequency_ = 1200u; // промежуточная частота, Гц
+        uint32_t intermediate_carrier_frequency_ = 1000u; // промежуточная частота, Гц
         double amplitude_ = 1.0; // амплитуда колебания
         double phase_ = 0; // текущая фаза
     };

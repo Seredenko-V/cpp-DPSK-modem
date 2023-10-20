@@ -43,6 +43,16 @@ namespace dpsk_mod {
         return carrier_frequency_;
     }
 
+    DPSKModulator& DPSKModulator::SetIntermediateFrequency(int intermediate_frequency) {
+        intermediate_carrier_frequency_ = intermediate_frequency;
+        return *this;
+    }
+
+    /// Получить значение промежуточной частоты
+    uint32_t DPSKModulator::GetIntermediateFrequency() const noexcept {
+        return intermediate_carrier_frequency_;
+    }
+
     DPSKModulator& DPSKModulator::SetSamplingFrequency(int sampling_frequency) {
         sampling_frequency_ = sampling_frequency;
         return *this;
@@ -128,12 +138,12 @@ namespace dpsk_mod {
 
     vector<double> DPSKModulator::Modulation(const vector<bool>& bits) {
         // частота дискретизации должна быть кратна несущей частоте, чтобы в одном периоде было целое количество отсчетов
-        if (sampling_frequency_ % carrier_frequency_ /*&& intermediate_frequency_ == 0*/) {
-            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
-        }
+//        if (sampling_frequency_ % carrier_frequency_ /*&& intermediate_frequency_ == 0*/) {
+//            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
+//        }
         const uint32_t kNumBitsInOneSymbol = log2(positionality_); // количество бит в одном символе
         vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);
-        const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / carrier_frequency_; // количество отсчетов в одном модулированном символе
+        const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / 1000; // количество отсчетов в одном модулированном символе
         vector<double> modulated_signal(kNumSpamlesInElementarySignal * symbols.size());
 
 //        for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
@@ -142,8 +152,8 @@ namespace dpsk_mod {
 //            ModulationOneSymbol(left_bound, right_bound, symbols[symbol_id], phase_);
 //        }
 
-        //ClassicalModulation(symbols, modulated_signal, kNumSpamlesInElementarySignal);
-        ModulationWithUseIntermediateFreq(symbols, modulated_signal, kNumSpamlesInElementarySignal);
+        ClassicalModulation(symbols, modulated_signal, kNumSpamlesInElementarySignal);
+//        ModulationWithUseIntermediateFreq(symbols, modulated_signal, kNumSpamlesInElementarySignal);
         return modulated_signal;
     }
 

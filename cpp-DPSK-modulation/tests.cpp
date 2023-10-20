@@ -344,6 +344,24 @@ namespace dpsk_mod {
 //                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
 
             }
+
+            {
+                modulator.SetPositionality(2).SetPhase(0);
+                vector<double> expected_mod_signal;
+                vector<bool> bits{1,1,1,1,1,0};
+                vector<double> real_mod_signal = modulator.Modulation(bits);
+                ofstream fout("modulated_signal_pos2.txt"s);
+                fout << real_mod_signal;
+                assert(real_mod_signal.size() == 6 * kSamplingFrequency / kCarrierFrequency);
+                vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
+//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
+
+                ofstream time("time.txt"s);
+                for (uint32_t i = 0; i < 6 * kSamplingFrequency / kCarrierFrequency; ++i) {
+                    time << (static_cast<double>(i) / modulator.GetCarrierFrequency() / 50) << endl;
+                }
+            }
+
             cerr << "dpsk_mod::TestModulationOnlyBits has passed"s << endl;
         }
 
