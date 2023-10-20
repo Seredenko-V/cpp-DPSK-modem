@@ -38,9 +38,6 @@ namespace dpsk_mod {
         /// Получить словарь символов с соответствующими сдвигами по фазе <символ, фазовый сдвиг>
         const std::map<uint16_t, double>& GetPhaseShifts() const noexcept;
 
-        /// Модуляция одного символа
-        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase);
-
         /// Модуляция последовательности бит.
         /// Если количество бит не кратно установленной позиционности, то дописываются нулевые биты до ближайшей степени двойки
         std::vector<double> Modulation(const std::vector<bool>& bits);
@@ -55,11 +52,21 @@ namespace dpsk_mod {
         /// Заполнить словарь со значениями сдвигов фаз
         void FillPhaseShifts();
 
+        /// Модуляция одного символа
+        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase);
+
+        /// Модуляция без изпользования промежуточной частоты. Частота дискретизации кратна несущей частоте. Сложность: O(N)
+        void ClassicalModulation(const std::vector<uint32_t>& symbols, std::vector<double>& modulated_signal, uint16_t num_samples_in_symbol);
+
+        /// Модуляция с изпользованием промежуточной частоты. Частота дискретизации НЕ кратна несущей частоте. Сложность: O(N)
+        void ModulationWithUseIntermediateFreq(const std::vector<uint32_t>& symbols, std::vector<double>& modulated_signal, uint16_t num_samples_in_symbol);
+
     private:
         std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги, соответствующие символу
-        uint16_t positionality_ = 0; // позиционность ОФМ
-        uint32_t carrier_frequency_ = 0; // несущая частота
-        uint32_t sampling_frequency_ = 0; // частота дискретизации
+        uint16_t positionality_ = 0u; // позиционность ОФМ
+        uint32_t carrier_frequency_ = 0u; // несущая частота
+        uint32_t sampling_frequency_ = 0u; // частота дискретизации
+        uint32_t intermediate_carrier_frequency_ = 1200u; // промежуточная частота, Гц
         double amplitude_ = 1.0; // амплитуда колебания
         double phase_ = 0; // текущая фаза
     };
