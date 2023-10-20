@@ -4,12 +4,7 @@
 #include <vector>
 #include <map>
 
-/// Модуляция одного периода. reference_bit - опорный бит
-//std::vector<double> ModulationElementrySignal(const std::vector<uint8_t>& bits, uint8_t reference_bit);
-
 namespace dpsk_mod {
-    //using PhaseDifferences = std::map<std::pair<uint16_t, uint16_t>, double>;
-
     /// Модулятор относительной фазовой модуляции (ОФМ) любой позиционности, являющейся степенью двойки
     class DPSKModulator {
     public:
@@ -50,18 +45,18 @@ namespace dpsk_mod {
         /// Если количество бит не кратно установленной позиционности, то дописываются нулевые биты до ближайшей степени двойки
         std::vector<double> Modulation(const std::vector<bool>& bits);
 
-        /// Модуляция последовательности бит с указанием нужной позиционности. reference_symbol - опорный бит
-    //    std::vector<double> Modulation(const std::vector<bool>& bits, uint8_t reference_symbol, uint8_t positionality);
+        /// Модуляция последовательности бит с указанием нужной позиционности
+        std::vector<double> Modulation(const std::vector<bool>& bits, int positionality);
 
         // в дальнейшем появятся перегрузки для записи в принимаемый по НЕ константной ссылке контейнер
         // и для приёма пары итераторов, указывающих на контейнер с битами
 
     private:
-        /// Заполнить возможные сочетания разностей фаз между двумя символами
-        void FillPhaseDifferences();
+        /// Заполнить словарь со значениями сдвигов фаз
+        void FillPhaseShifts();
 
     private:
-        std::map<uint16_t, double>  phase_differences_; // разности фаз между символами
+        std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги, соответствующие символу
         uint16_t positionality_ = 0; // позиционность ОФМ
         uint32_t carrier_frequency_ = 0; // несущая частота
         uint32_t sampling_frequency_ = 0; // частота дискретизации

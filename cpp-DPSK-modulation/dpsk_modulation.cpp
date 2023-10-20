@@ -25,7 +25,7 @@ namespace dpsk_mod {
                 throw invalid_argument("Positionality is not a power of two."s);
             }
             positionality_ = positionality;
-            FillPhaseDifferences();
+            FillPhaseShifts();
         }
         return *this;
     }
@@ -62,18 +62,18 @@ namespace dpsk_mod {
     }
 
     const map<uint16_t, double>& DPSKModulator::GetPhaseShifts() const noexcept {
-        return phase_differences_;
+        return phase_shifts_;
     }
 
-    void DPSKModulator::FillPhaseDifferences() {
-        phase_differences_.clear();
+    void DPSKModulator::FillPhaseShifts() {
+        phase_shifts_.clear();
         static constexpr double kTotalAngle = 360; // количество градусов на окружности
         const double kStepPhase = kTotalAngle / positionality_;
         vector<vector<bool>> grey_codes = gray_code::MakeGrayCodes(positionality_);
         double current_phase = 0;
         for (uint16_t i = 0; i < positionality_; ++i) {
             assert(current_phase < kTotalAngle);
-            phase_differences_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase);
+            phase_shifts_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase);
             current_phase += kStepPhase;
         }
     }
@@ -82,7 +82,7 @@ namespace dpsk_mod {
         const double kCyclicFrequency = 2 * M_PI * carrier_frequency_; // циклическая частота
         const double kTimeStepBetweenSamples = 1.0 / sampling_frequency_; // шаг дискретизации во временной области
         const double kFixedCoefficient = kCyclicFrequency * kTimeStepBetweenSamples; // коэффициент, не изменяющийся в процессе дискретизации
-        const double kPhaseDifferent = phase_differences_.find(current_symbol)->second;
+        const double kPhaseDifferent = phase_shifts_.find(current_symbol)->second;
         int count = 0;
 //        phase += 2 * M_PI * current_symbol / positionality_; // возникают трудности при количестве позиции ОФМ больше 2
         phase += math::DegreesToRadians(kPhaseDifferent);
@@ -107,5 +107,10 @@ namespace dpsk_mod {
             ModulationOneSymbol(left_bound, right_bound, symbols[symbol_id], phase_);
         }
         return modulated_signal;
+    }
+
+    vector<double> DPSKModulator::Modulation(const vector<bool>& bits, int positionality) {
+        SetPositionality(positionality);
+        return Modulation(bits);
     }
 } // namespace dpsk_mod
