@@ -380,10 +380,20 @@ namespace dpsk_mod {
                 vector<double> real_mod_signal = modulator.Modulation(bits);
                 ofstream fout("intermediate_carrier_modulated_signal_pos4.txt"s);
                 fout << real_mod_signal;
-                assert(real_mod_signal.size() == bits.size() / 2 * kSamplingFrequency / kIntermediateFrequency);
+                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kIntermediateFrequency);
                 //vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
 //                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
                 WriteSignalTime("time_intermediate_carrier_modulated_signal_pos4.txt"s, bits.size() / 2 * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
+            }{
+                modulator.SetPositionality(8).SetPhase(0);
+                vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
+                vector<double> real_mod_signal = modulator.Modulation(bits);
+                ofstream fout("intermediate_carrier_modulated_signal_pos8.txt"s);
+                fout << real_mod_signal;
+                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kIntermediateFrequency);
+//                vector<double> expected_signal = benchmark_modulation::ModulationFourPosDPSK({5,4,7,0}, kCarrierFrequency, kSamplingFrequency);
+//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
+                WriteSignalTime("time_intermediate_carrier_modulated_signal_pos8.txt"s, 4 * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
             }
             cerr << "dpsk_mod::TestModulationWithUseIntermediateFreq has passed"s << endl;
         }
