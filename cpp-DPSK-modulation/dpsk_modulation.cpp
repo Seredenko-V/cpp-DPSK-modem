@@ -126,10 +126,11 @@ namespace dpsk_mod {
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
-                double sample_of_signal_on_intermediate_frequency = amplitude_ * sin(kIntermediateCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol) + phase_);
-                double sample_of_orthogonal_signal = amplitude_ * cos(kIntermediateCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol) + phase_);
+                size_t time_difference_step = sample_id + symbol_id * num_samples_in_symbol;
+                double sample_of_signal_on_intermediate_frequency = amplitude_ * sin(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
+                double sample_of_orthogonal_signal = amplitude_ * cos(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
                 modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = sample_of_signal_on_intermediate_frequency *
-                        cos(kDiffrerenceCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol)) - sample_of_orthogonal_signal * sin(kDiffrerenceCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol));
+                        cos(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step) - sample_of_orthogonal_signal * sin(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step);
             }
         }
     }
