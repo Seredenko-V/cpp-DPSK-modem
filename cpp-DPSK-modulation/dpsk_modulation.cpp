@@ -119,41 +119,37 @@ namespace dpsk_mod {
         const double kCyclicFrequency = 2 * M_PI * carrier_frequency_; // циклическая частота
         const double kIntermediateCyclicFrequency = 2 * M_PI * intermediate_carrier_frequency_; // циклическая промежуточная частота
 
-        const double kDiffrerenceCyclicFrequency = kIntermediateCyclicFrequency - kCyclicFrequency;
+        const double kDiffrerenceCyclicFrequency = (kIntermediateCyclicFrequency - kCyclicFrequency);
         const double kDiffrerenceCyclicFrequencyCoefficient = kDiffrerenceCyclicFrequency * kTimeStepBetweenSamples;
         const double kIntermediateCyclicFrequencyCoefficient = kIntermediateCyclicFrequency * kTimeStepBetweenSamples;
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
-                double sample_of_signal_on_intermediate_frequency = amplitude_ * sin(kIntermediateCyclicFrequencyCoefficient * sample_id + phase_);
-                double sample_of_orthogonal_signal = amplitude_ * -cos(kIntermediateCyclicFrequencyCoefficient * sample_id + phase_);
-//                double sample_of_needed_signal = sample_of_signal_on_intermediate_frequency * cos(kDiffrerenceCyclicFrequencyCoefficient * sample_id) +
-//                        sample_of_orthogonal_signal * sin(kDiffrerenceCyclicFrequencyCoefficient * sample_id);
+                double sample_of_signal_on_intermediate_frequency = amplitude_ * sin(kIntermediateCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol) + phase_);
+                double sample_of_orthogonal_signal = amplitude_ * cos(kIntermediateCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol) + phase_);
                 modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = sample_of_signal_on_intermediate_frequency *
-                        cos(kDiffrerenceCyclicFrequencyCoefficient * sample_id) + sample_of_orthogonal_signal * sin(kDiffrerenceCyclicFrequencyCoefficient * sample_id);
+                        cos(kDiffrerenceCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol)) - sample_of_orthogonal_signal * sin(kDiffrerenceCyclicFrequencyCoefficient * (sample_id + symbol_id * num_samples_in_symbol));
             }
         }
     }
 
     vector<double> DPSKModulator::Modulation(const vector<bool>& bits) {
-        // частота дискретизации должна быть кратна несущей частоте, чтобы в одном периоде было целое количество отсчетов
-//        if (sampling_frequency_ % carrier_frequency_ /*&& intermediate_frequency_ == 0*/) {
-//            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
-//        }
+        const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_carrier_frequency_ : carrier_frequency_;
+        // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
+        if (sampling_frequency_ % kUsedCarrierFrequency) {
+            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
+        }
         const uint32_t kNumBitsInOneSymbol = log2(positionality_); // количество бит в одном символе
         vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);
-        const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / 1000; // количество отсчетов в одном модулированном символе
+        const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / kUsedCarrierFrequency; // количество отсчетов в одном модулированном символе
         vector<double> modulated_signal(kNumSpamlesInElementarySignal * symbols.size());
 
-//        for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
-//            vector<double>::iterator left_bound = modulated_signal.begin() + symbol_id * kNumSpamlesInElementarySignal;
-//            vector<double>::iterator right_bound = modulated_signal.begin() + (symbol_id + 1) * kNumSpamlesInElementarySignal;
-//            ModulationOneSymbol(left_bound, right_bound, symbols[symbol_id], phase_);
-//        }
-
-        ClassicalModulation(symbols, modulated_signal, kNumSpamlesInElementarySignal);
-//        ModulationWithUseIntermediateFreq(symbols, modulated_signal, kNumSpamlesInElementarySignal);
+        if (kUsedCarrierFrequency == carrier_frequency_) {
+            ClassicalModulation(symbols, modulated_signal, kNumSpamlesInElementarySignal);
+        } else {
+            ModulationWithUseIntermediateFreq(symbols, modulated_signal, kNumSpamlesInElementarySignal);
+        }
         return modulated_signal;
     }
 

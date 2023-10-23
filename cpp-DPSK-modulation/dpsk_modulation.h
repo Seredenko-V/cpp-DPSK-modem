@@ -80,7 +80,8 @@ namespace dpsk_mod {
     namespace tests {
         void TestDefaultConstructor();
         void TestSetPositionality(); // установление позиционности с заполнением словаря разностей фаз
-        void TestModulationOnlyBits(); // перегрузка, принимающая только вектор бит
+        void TestClassicalModulation(); // модуляция без переноса на промежуточную несущую
+        void TestModulationWithUseIntermediateFreq(); // модуляция с переносом на промежуточную несущую
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_mod

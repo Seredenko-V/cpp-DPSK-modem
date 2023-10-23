@@ -303,20 +303,21 @@ namespace dpsk_mod {
 //            }
         } // namespace benchmark_modulation
 
-        void TestModulationOnlyBits() {
+        void TestClassicalModulation() {
             DPSKModulator modulator;
-            constexpr uint32_t kCarrierFrequency = 1000u;
-            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kCarrierFrequency = 1200u;
+            constexpr uint32_t kSamplingFrequency = 19'200u;
             modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
             {
                 modulator.SetPositionality(2).SetPhase(0);
                 vector<double> expected_mod_signal;
-                vector<bool> bits{1,1,1,1,1,0};
+//                vector<bool> bits{1,1,1,1,1,0};
+                vector<bool> bits{1,0,1,0,1,0};
                 vector<double> real_mod_signal = modulator.Modulation(bits);
                 ofstream fout("modulated_signal_pos2.txt"s);
                 fout << real_mod_signal;
                 assert(real_mod_signal.size() == 6 * kSamplingFrequency / kCarrierFrequency);
-                vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
+//                vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
 //                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
             }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
                 modulator.SetPositionality(4);
@@ -330,7 +331,7 @@ namespace dpsk_mod {
                 vector<double> real_mod_signal = modulator.Modulation(bits);
                 ofstream fout("modulated_signal_pos4.txt"s);
                 fout << real_mod_signal;
-//                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
+                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
 //                vector<double> expected_signal = benchmark_modulation::ModulationFourPosDPSK({2,3,1,0}, kCarrierFrequency, kSamplingFrequency);
 //                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
             }{
@@ -344,31 +345,40 @@ namespace dpsk_mod {
 //                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
 
             }
+            cerr << "dpsk_mod::TestClassicalModulation has passed"s << endl;
+        }
 
+        void TestModulationWithUseIntermediateFreq() {
+            DPSKModulator modulator;
+            constexpr uint32_t kCarrierFrequency = 1800u;
+            constexpr uint32_t kIntermediateFrequency = 1200u;
+            constexpr uint32_t kSamplingFrequency = 19'200u;
+            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency).SetIntermediateFrequency(kIntermediateFrequency);
             {
                 modulator.SetPositionality(2).SetPhase(0);
                 vector<double> expected_mod_signal;
                 vector<bool> bits{1,1,1,1,1,0};
+//                vector<bool> bits{1,0,1,0,1,0};
                 vector<double> real_mod_signal = modulator.Modulation(bits);
-                ofstream fout("modulated_signal_pos2.txt"s);
+                ofstream fout("intermediate_carrier_modulated_signal_pos2.txt"s);
                 fout << real_mod_signal;
-                assert(real_mod_signal.size() == 6 * kSamplingFrequency / kCarrierFrequency);
-                vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
+                assert(real_mod_signal.size() == bits.size() * kSamplingFrequency / kIntermediateFrequency);
+                //vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
 //                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
 
-                ofstream time("time.txt"s);
-                for (uint32_t i = 0; i < 6 * kSamplingFrequency / kCarrierFrequency; ++i) {
-                    time << (static_cast<double>(i) / modulator.GetCarrierFrequency() / 50) << endl;
-                }
+//                ofstream time("time.txt"s);
+//                for (uint32_t i = 0; i < bits.size() * kSamplingFrequency / kIntermediateFrequency; ++i) {
+//                    time << (static_cast<double>(i) / modulator.GetCarrierFrequency() / 50) << endl;
+//                }
             }
-
-            cerr << "dpsk_mod::TestModulationOnlyBits has passed"s << endl;
+            cerr << "dpsk_mod::TestModulationWithUseIntermediateFreq has passed"s << endl;
         }
 
         void RunAllTests() {
             TestDefaultConstructor();
             TestSetPositionality();
-            TestModulationOnlyBits();
+            TestClassicalModulation();
+            TestModulationWithUseIntermediateFreq();
             cerr << "dpsk_mod::AllTests has passed"s << endl;
         }
     } // namespace tests
