@@ -224,6 +224,17 @@ namespace dpsk_mod {
             return out;
         }
 
+        vector<double> ReadSamplesFromFile(const string& name_file) {
+            ifstream fin(name_file);
+            assert(fin.is_open());
+            vector<double> samples(1);
+            while (fin >> *(samples.end() - 1)) {
+                samples.emplace_back();
+            }
+            samples.pop_back();
+            return samples;
+        }
+
         /// Запись временнЫх отсчетов (в секундах) модулированного сигнала
         void WriteSignalTime(string&& name_file, uint32_t num_samples_in_signal, uint32_t sampling_frequency) {
             ofstream time(name_file);
@@ -271,44 +282,18 @@ namespace dpsk_mod {
             cerr << "dpsk_mod::TestSetPositionality has passed"s << endl;
         }
 
-        namespace benchmark_modulation {
-            vector<double> ModulationTwoPosDPSK(const vector<uint16_t>& symbols, uint32_t carrier_freq, uint32_t sampling_freq) {
-                constexpr uint16_t kNumPositions = 2;
-                ofstream fout("benchmark_modulation_pos2.txt"s);
-                const int kSizeOnePeriod = sampling_freq / carrier_freq;
-                vector<double> mod_signal(symbols.size() * kSizeOnePeriod);
-                double phase_shift = 0;
-                for (size_t i = 0; i < symbols.size(); ++i) {
-                    phase_shift += 2 * M_PI * symbols[i] / kNumPositions;
-                    for (int j = 0; j < kSizeOnePeriod; ++j) {
-                        mod_signal[j + i * kSizeOnePeriod] = sin(2 * M_PI * carrier_freq / sampling_freq * j + phase_shift);
-                    }
-                }
-                fout << mod_signal;
-                return mod_signal;
-            }
 
-            // НУЖНО УЗНАТЬ КАК ДЕЛАЕТСЯ МОДУЛЯЦИЯ ПРИ ПОМОЩИ ЭТОЙ ФОРМУЛЫ https://vunivere.ru/work63579/page2
-//            vector<double> ModulationFourPosDPSK(const vector<uint16_t>& symbols, uint32_t carrier_freq, uint32_t sampling_freq) {
-//                constexpr uint16_t kNumPositions = 8;
-//                ofstream fout("benchmark_modulation_pos4.txt"s);
-//                const int kSizeOnePeriod = sampling_freq / carrier_freq;
-//                vector<double> mod_signal(symbols.size() * kSizeOnePeriod);
-//                double phase_shift = 0;
-//                for (size_t i = 0; i < symbols.size(); ++i) {
-//                    int symbol = symbols[i];
-//                    if (!(symbol % 2)) {
-//                        symbol = -(symbol + 1);
-//                    }
-//                    phase_shift += 2 * M_PI * symbol / kNumPositions;
-//                    for (int j = 0; j < kSizeOnePeriod; ++j) {
-//                        mod_signal[j + i * kSizeOnePeriod] = sin(2 * M_PI * carrier_freq / sampling_freq * j + phase_shift);
-//                    }
-//                }
-//                fout << mod_signal;
-//                return mod_signal;
-//            }
-        } // namespace benchmark_modulation
+        void CheckModulationMode(const vector<bool>& bits, DPSKModulator& modulator, const string& name_benchmark_file, const string& name_out_file) {
+            vector<double> expected_mod_signal = ReadSamplesFromFile(name_benchmark_file);
+            vector<double> real_mod_signal = modulator.Modulation(bits);
+            ofstream fout(name_out_file);
+            assert(fout.is_open());
+            fout << real_mod_signal;
+            assert(math::IsSameContainersWithDouble(real_mod_signal, expected_mod_signal));
+        }
+
+        const string kNamesPrefixOfBenchmarkFiles = "../files-with-sample-for-tests/samples_"s;
+        const string kNamesPrefixOfOutputFiles = "real_"s;
 
         void TestClassicalModulation() {
             DPSKModulator modulator;
@@ -316,42 +301,25 @@ namespace dpsk_mod {
             constexpr uint32_t kSamplingFrequency = 19'200u;
             modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
             {
+                const string kNameFile = "pos2.txt"s;
                 modulator.SetPositionality(2).SetPhase(0);
-                vector<double> expected_mod_signal;
                 vector<bool> bits{1,1,1,1,1,0};
-                vector<double> real_mod_signal = modulator.Modulation(bits);
-                ofstream fout("modulated_signal_pos2.txt"s);
-                fout << real_mod_signal;
-                assert(real_mod_signal.size() == 6 * kSamplingFrequency / kCarrierFrequency);
-                vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
-                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
-
-                WriteSignalTime("time_modulated_signal_pos2.txt"s, bits.size() * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
                 modulator.SetPositionality(4);
                 vector<bool> bits{1,0,1,0,0,1,1};
                 vector<double> real_mod_signal = modulator.Modulation(bits);
                 assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
             }{
+                const string kNameFile = "pos4.txt"s;
                 modulator.SetPositionality(4).SetPhase(0);
                 vector<bool> bits{1,0, 1,1, 0,1, 0,0};
-                vector<double> real_mod_signal = modulator.Modulation(bits);
-                ofstream fout("modulated_signal_pos4.txt"s);
-                fout << real_mod_signal;
-                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
-//                vector<double> expected_signal = benchmark_modulation::ModulationFourPosDPSK({2,3,1,0}, kCarrierFrequency, kSamplingFrequency);
-//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
-                WriteSignalTime("time_modulated_signal_pos4.txt"s, bits.size() / 2 * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }{
+                const string kNameFile = "pos8.txt"s;
                 modulator.SetPositionality(8).SetPhase(0);
                 vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
-                vector<double> real_mod_signal = modulator.Modulation(bits);
-                ofstream fout("modulated_signal_pos8.txt"s);
-                fout << real_mod_signal;
-                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
-//                vector<double> expected_signal = benchmark_modulation::ModulationFourPosDPSK({5,4,7,0}, kCarrierFrequency, kSamplingFrequency);
-//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
-                WriteSignalTime("time_modulated_signal_pos8.txt"s, bits.size() / 4 * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }
             cerr << "dpsk_mod::TestClassicalModulation has passed"s << endl;
         }
@@ -363,39 +331,71 @@ namespace dpsk_mod {
             constexpr uint32_t kSamplingFrequency = 19'200u;
             modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency).SetIntermediateFrequency(kIntermediateFrequency);
             {
+                const string kNameFile = "pos2_intermediate.txt"s;
                 modulator.SetPositionality(2).SetPhase(0);
-                vector<double> expected_mod_signal;
                 vector<bool> bits{1,1,1,1,1,0};
-                vector<double> real_mod_signal = modulator.Modulation(bits);
-                ofstream fout("intermediate_carrier_modulated_signal_pos2.txt"s);
-                fout << real_mod_signal;
-                assert(real_mod_signal.size() == bits.size() * kSamplingFrequency / kIntermediateFrequency);
-                //vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
-//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
-                WriteSignalTime("time_intermediate_carrier_modulated_signal_pos2.txt"s, bits.size() * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }{
+                const string kNameFile = "pos4_intermediate.txt"s;
                 modulator.SetPositionality(4).SetPhase(0);
-                vector<double> expected_mod_signal;
                 vector<bool> bits{1,0, 1,1, 0,1, 0,0};
-                vector<double> real_mod_signal = modulator.Modulation(bits);
-                ofstream fout("intermediate_carrier_modulated_signal_pos4.txt"s);
-                fout << real_mod_signal;
-                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kIntermediateFrequency);
-                //vector<double> expected_signal = benchmark_modulation::ModulationTwoPosDPSK({1,1,1,1,1,0}, kCarrierFrequency, kSamplingFrequency);
-//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
-                WriteSignalTime("time_intermediate_carrier_modulated_signal_pos4.txt"s, bits.size() / 2 * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }{
+                const string kNameFile = "pos8_intermediate.txt"s;
                 modulator.SetPositionality(8).SetPhase(0);
                 vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
-                vector<double> real_mod_signal = modulator.Modulation(bits);
-                ofstream fout("intermediate_carrier_modulated_signal_pos8.txt"s);
-                fout << real_mod_signal;
-                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kIntermediateFrequency);
-//                vector<double> expected_signal = benchmark_modulation::ModulationFourPosDPSK({5,4,7,0}, kCarrierFrequency, kSamplingFrequency);
-//                assert(math::IsSameContainersWithDouble(real_mod_signal, expected_signal));
-                WriteSignalTime("time_intermediate_carrier_modulated_signal_pos8.txt"s, 4 * kSamplingFrequency / kCarrierFrequency, kSamplingFrequency);
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }
             cerr << "dpsk_mod::TestModulationWithUseIntermediateFreq has passed"s << endl;
+        }
+
+        void TestConstellationShift() {
+            DPSKModulator modulator;
+            constexpr uint32_t kCarrierFrequency = 1800u;
+            constexpr uint32_t kIntermediateFrequency = 1200u;
+            constexpr uint32_t kSamplingFrequency = 19'200u;
+            // без использования промежуточной частоты
+            modulator.SetCarrierFrequency(kIntermediateFrequency).SetSamplingFrequency(kSamplingFrequency);
+            {
+                const string kNameFile = "pos2_shift_90.txt"s;
+                modulator.SetPositionality(2).SetPhase(90);
+                vector<bool> bits{1,1,1,1,1,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }{ // по часовой стрелке (отрицательное значение фазы)
+                const string kNameFile = "pos2_shift_minus_90.txt"s;
+                modulator.SetPositionality(2).SetPhase(-90);
+                vector<bool> bits{1,1,1,1,1,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }{
+                const string kNameFile = "pos4_shift_45.txt"s;
+                modulator.SetPositionality(4).SetPhase(45);
+                vector<bool> bits{1,0, 1,1, 0,1, 0,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }{
+                const string kNameFile = "pos8_shift_22.5.txt"s;
+                modulator.SetPositionality(8).SetPhase(22.5);
+                vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }
+            // с использованием промежуточной частоты
+            modulator.SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kIntermediateFrequency);
+            {
+                const string kNameFile = "pos2_shift_90_intermediate.txt"s;
+                modulator.SetPositionality(2).SetPhase(90);
+                vector<bool> bits{1,1,1,1,1,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }{
+                const string kNameFile = "pos4_shift_45_intermediate.txt"s;
+                modulator.SetPositionality(4).SetPhase(45);
+                vector<bool> bits{1,0, 1,1, 0,1, 0,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }{
+                const string kNameFile = "pos8_shift_22.5_intermediate.txt"s;
+                modulator.SetPositionality(8).SetPhase(22.5);
+                vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }
+            cerr << "dpsk_mod::TestConstellationShift has passed"s << endl;
         }
 
         void RunAllTests() {
@@ -403,6 +403,7 @@ namespace dpsk_mod {
             TestSetPositionality();
             TestClassicalModulation();
             TestModulationWithUseIntermediateFreq();
+            TestConstellationShift();
             cerr << "dpsk_mod::AllTests has passed"s << endl;
         }
     } // namespace tests

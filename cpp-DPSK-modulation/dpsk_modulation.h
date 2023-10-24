@@ -35,7 +35,8 @@ namespace dpsk_mod {
         /// Получить значение частоты дискретизации
         uint32_t GetSamplingFrequency() const noexcept;
 
-        /// Установить текущее значение фазы
+        /// Установить текущее значение фазы. Позволяет сдвинуть сигнальное созвездие на заданный в ГРАДУСАХ угол.
+        /// Значение со знаком "+" - сдвиг по против часовой стрелки; со знаком "-" - по часовой стрелке
         DPSKModulator& SetPhase(double new_phase);
 
         /// Получить текущее значение фазы
@@ -82,6 +83,7 @@ namespace dpsk_mod {
         void TestSetPositionality(); // установление позиционности с заполнением словаря разностей фаз
         void TestClassicalModulation(); // модуляция без переноса на промежуточную несущую
         void TestModulationWithUseIntermediateFreq(); // модуляция с переносом на промежуточную несущую
+        void TestConstellationShift(); // сдвиг созвездия
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_mod
