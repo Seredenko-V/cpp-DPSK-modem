@@ -361,6 +361,11 @@ namespace dpsk_mod {
                 modulator.SetPositionality(2).SetPhase(90);
                 vector<bool> bits{1,1,1,1,1,0};
                 CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }{ // по часовой стрелке (отрицательное значение фазы)
+                const string kNameFile = "pos2_shift_minus_90.txt"s;
+                modulator.SetPositionality(2).SetPhase(-90);
+                vector<bool> bits{1,1,1,1,1,0};
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }{
                 const string kNameFile = "pos4_shift_45.txt"s;
                 modulator.SetPositionality(4).SetPhase(45);
