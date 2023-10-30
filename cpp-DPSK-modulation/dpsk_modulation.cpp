@@ -74,6 +74,18 @@ namespace dpsk_mod {
         return phase_;
     }
 
+    DPSKModulator& DPSKModulator::SetModulationFunction(function<double(double)> mod_function) {
+        mod_function_ = mod_function;
+        double (*const* func)(double) = mod_function_.target<double(*)(double)>();
+
+        if (func && *func == *Sin.target<double(*)(double)>()) {
+            ortogonal_mod_function_ = Cos;
+        } else {
+            ortogonal_mod_function_ = Sin;
+        }
+        return *this;
+    }
+
     const map<uint16_t, double>& DPSKModulator::GetPhaseShifts() const noexcept {
         return phase_shifts_;
     }
@@ -93,36 +105,28 @@ namespace dpsk_mod {
 
     // ================================== Modulation ====================================>
     void DPSKModulator::ModulationOneSymbol(vector<double>::iterator begin_samples, vector<double>::iterator end_samples, uint16_t current_symbol, double& phase) const {
-//        const double kCyclicFrequency = 2 * M_PI * carrier_frequency_; // циклическая частота
-//        const double kTimeStepBetweenSamples = 1.0 / sampling_frequency_; // шаг дискретизации во временной области
         const double kFixedCoefficient = carrier_cyclic_frequency_ * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
         const double kPhaseDifferent = phase_shifts_.find(current_symbol)->second;
         int count = 0;
 //        phase += 2 * M_PI * current_symbol / positionality_; // возникают трудности при количестве позиции ОФМ больше 2
         phase += math::DegreesToRadians(kPhaseDifferent);
         for (vector<double>::iterator it = begin_samples; it != end_samples; ++it) {
-            *it = amplitude_ * sin(kFixedCoefficient * count++ + phase);
+            *it = amplitude_ * mod_function_(kFixedCoefficient * count++ + phase);
         }
     }
 
     void DPSKModulator::ClassicalModulation(const vector<uint32_t>& symbols, vector<double>& modulated_signal, uint16_t num_samples_in_symbol) {
-//        const double kCyclicFrequency = 2 * M_PI * carrier_frequency_; // циклическая частота
-//        const double kTimeStepBetweenSamples = 1.0 / sampling_frequency_; // шаг дискретизации во временной области
         const double kCyclicFrequencyCoefficient = carrier_cyclic_frequency_ * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
-                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
+                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * mod_function_(kCyclicFrequencyCoefficient * sample_id + phase_);
             }
         }
     }
 
     void DPSKModulator::ModulationWithUseIntermediateFreq(const vector<uint32_t>& symbols, vector<double>& modulated_signal, uint16_t num_samples_in_symbol) {
-//        const double kTimeStepBetweenSamples = 1.0 / sampling_frequency_; // шаг дискретизации во временной области
-//        const double kCyclicFrequency = 2 * M_PI * carrier_frequency_; // циклическая частота
-//        const double kIntermediateCyclicFrequency = 2 * M_PI * intermediate_frequency_; // циклическая промежуточная частота
-
         const double kDiffrerenceCyclicFrequency = (intermediate_cyclic_frequency_ - carrier_cyclic_frequency_);
         const double kDiffrerenceCyclicFrequencyCoefficient = kDiffrerenceCyclicFrequency * time_step_between_samples_;
         const double kIntermediateCyclicFrequencyCoefficient = intermediate_cyclic_frequency_ * time_step_between_samples_;
@@ -131,10 +135,11 @@ namespace dpsk_mod {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
                 size_t time_difference_step = sample_id + symbol_id * num_samples_in_symbol;
-                double sample_of_signal_on_intermediate_frequency = amplitude_ * sin(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
-                double sample_of_orthogonal_signal = amplitude_ * cos(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
+                double sample_of_signal_on_intermediate_frequency = amplitude_ * mod_function_(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
+                double sample_of_orthogonal_signal = amplitude_ * ortogonal_mod_function_(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
                 modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = sample_of_signal_on_intermediate_frequency *
-                        cos(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step) - sample_of_orthogonal_signal * sin(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step);
+                        ortogonal_mod_function_(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step) - sample_of_orthogonal_signal
+                        * mod_function_(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step);
             }
         }
     }
@@ -165,6 +170,10 @@ namespace dpsk_mod {
     // <================================= Modulation =====================================
 
     // ================================== Demodulation ==================================>
+    const InPhaseAndQuadratureComponents& DPSKModulator::GetInPhaseAndQuadratureComponents() const noexcept {
+        return IpQ_components_;
+    }
+
     complex<double> InPhaseAndQuadratureComponents::ExtractInPhaseAndQuadratureComponentsSymbol(const vector<double>& one_symbol_samples) const {
         if (one_symbol_samples.size() != cos_oscillation.size()) {
             throw logic_error("Samples number of symbol is not equal samples number cos and sin oscillation"s);
@@ -192,8 +201,10 @@ namespace dpsk_mod {
         IpQ_components_.cos_oscillation.resize(kNumSamplesInSymbol);
         IpQ_components_.sin_oscillation.resize(kNumSamplesInSymbol);
 
+        const double kCyclicFrequencyCoefficient = 2 * M_PI * kUsedCarrierFrequency * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
         for (uint16_t sample_id = 0; sample_id < kNumSamplesInSymbol; ++sample_id) {
-            IpQ_components_.cos_oscillation[sample_id] = 0;
+            IpQ_components_.cos_oscillation[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
+            IpQ_components_.sin_oscillation[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
         }
     }
 
