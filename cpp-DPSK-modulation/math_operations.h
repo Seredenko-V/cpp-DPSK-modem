@@ -22,6 +22,7 @@ namespace math {
     /// Сравнение двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
     bool IsSameDouble(double lhs, double rhs, double delta = 1e-6);
 
+    /// Сравнение двух контейнеров с double. Сложность: O(1)
     template <typename Container>
     bool IsSameContainersWithDouble(const Container& lhs, const Container& rhs, double delta = 1e-6) {
         if (lhs.size() != rhs.size()) {
@@ -35,7 +36,7 @@ namespace math {
         return true;
     }
 
-    /// Перевод углов в радианы
+    /// Перевод углов в радианы. Сложность: O(1)
     double DegreesToRadians(double angle_degree);
 
     namespace tests {
