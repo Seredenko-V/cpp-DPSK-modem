@@ -9,6 +9,16 @@
 
 using namespace std;
 
+template <typename Type>
+ostream& operator<<(ostream& out, const vector<Type>& vec) {
+    out << fixed;
+    out.precision(20);
+    for (const Type& element : vec) {
+        out << element << endl;
+    }
+    return out;
+}
+
 int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
     math::tests::RunAllTests();
     gray_code::tests::RunAllTests();
@@ -34,6 +44,31 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
         for (double sample : mod_signal) {
             fout << sample << endl;
         }
+    }{
+        dpsk_mod::DPSKModulator modulator;
+        modulator.SetCarrierFrequency(1800u).SetSamplingFrequency(19200u).SetIntermediateFrequency(1200u).SetPositionality(2);
+        vector<bool> bits{0,
+                          0,
+                          0,
+                          0,
+                          0,
+                          1,
+                          1,
+                          0,
+                          0,
+                          0,
+                          1,
+                          0,
+                          1,
+                          1,
+                          1,
+                          0,
+                          1,
+                          0,
+                          0};
+        vector<double> mod_signal = modulator.Modulation(bits);
+        ofstream fout("mod_imitator.txt"s);
+        fout << mod_signal;
     }
     return 0;
 }

@@ -235,6 +235,17 @@ namespace dpsk_mod {
             return samples;
         }
 
+        vector<bool> ReadBitsFromFile(const string& name_file) {
+            ifstream fin(name_file);
+            assert(fin.is_open());
+            vector<bool> bits;
+            int tmp_value = 0;
+            while (fin >> tmp_value) {
+                bits.emplace_back(tmp_value);
+            }
+            return bits;
+        }
+
         /// Запись временнЫх отсчетов (в секундах) модулированного сигнала
         void WriteSignalTime(string&& name_file, uint32_t num_samples_in_signal, uint32_t sampling_frequency) {
             ofstream time(name_file);
@@ -324,6 +335,8 @@ namespace dpsk_mod {
             cerr << "dpsk_mod::TestClassicalModulation has passed"s << endl;
         }
 
+
+
         void TestModulationWithUseIntermediateFreq() {
             DPSKModulator modulator;
             constexpr uint32_t kCarrierFrequency = 1800u;
@@ -335,6 +348,12 @@ namespace dpsk_mod {
                 modulator.SetPositionality(2).SetPhase(0);
                 vector<bool> bits{1,1,1,1,1,0};
                 CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
+            }{
+                const string kNameFileOut = "pos2_intermediate_big.txt"s;
+                const string kNameFileIn = "../files-with-sample-for-tests/send_bits_19200_1200_2pos.txt"s;
+                modulator.SetPositionality(2).SetPhase(0);
+                vector<bool> bits = ReadBitsFromFile(kNameFileIn);
+                CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFileOut, kNamesPrefixOfOutputFiles + kNameFileOut);
             }{
                 const string kNameFile = "pos4_intermediate.txt"s;
                 modulator.SetPositionality(4).SetPhase(0);
