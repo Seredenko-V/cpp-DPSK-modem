@@ -35,6 +35,9 @@ namespace dpsk_mod {
     }
 
     DPSKModulator& DPSKModulator::SetCarrierFrequency(int carrier_frequency) {
+        if (carrier_frequency <= 0) {
+            throw invalid_argument("Value "s + to_string(carrier_frequency) + " of carrier frequency isn't positive"s);
+        }
         carrier_frequency_ = carrier_frequency;
         carrier_cyclic_frequency_ = 2 * M_PI * carrier_frequency_;
         return *this;
@@ -45,6 +48,9 @@ namespace dpsk_mod {
     }
 
     DPSKModulator& DPSKModulator::SetIntermediateFrequency(int intermediate_frequency) {
+        if (intermediate_frequency <= 0) {
+            throw invalid_argument("Value "s + to_string(intermediate_frequency) + " of intermediate frequency isn't positive"s);
+        }
         intermediate_frequency_ = intermediate_frequency;
         intermediate_cyclic_frequency_ = 2 * M_PI * intermediate_frequency_;
         return *this;
@@ -56,6 +62,9 @@ namespace dpsk_mod {
     }
 
     DPSKModulator& DPSKModulator::SetSamplingFrequency(int sampling_frequency) {
+        if (sampling_frequency <= 0) {
+            throw invalid_argument("Value "s + to_string(sampling_frequency) + " of sampling frequency isn't positive"s);
+        }
         sampling_frequency_ = sampling_frequency;
         time_step_between_samples_ = 1.0 / sampling_frequency_;
         return *this;

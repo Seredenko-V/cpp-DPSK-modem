@@ -99,10 +99,10 @@ namespace dpsk_mod {
 
 
     private:
-        std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги, соответствующие символу
+        std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги в градусах, соответствующие символу
         uint16_t positionality_ = 0u; // позиционность ОФМ
         double amplitude_ = 1.0; // амплитуда колебания
-        double phase_ = 0; // текущая фаза
+        double phase_ = 0; // текущая фаза, радианы
         InPhaseAndQuadratureComponents IpQ_components_;
         std::function<double(double)> mod_function_ = Sin;
         std::function<double(double)> ortogonal_mod_function_ = Cos;
