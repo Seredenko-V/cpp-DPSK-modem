@@ -3,7 +3,6 @@
 using namespace std;
 
 namespace dpsk_demod {
-    // ================================== Demodulation ==================================>
     const InPhaseAndQuadratureComponents& DPSKDemodulator::GetInPhaseAndQuadratureComponents() const noexcept {
         return IpQ_components_;
     }
