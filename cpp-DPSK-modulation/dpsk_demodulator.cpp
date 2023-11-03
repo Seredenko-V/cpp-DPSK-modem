@@ -3,11 +3,16 @@
 using namespace std;
 
 namespace dpsk_demod {
-    const InPhaseAndQuadratureComponents& DPSKDemodulator::GetInPhaseAndQuadratureComponents() const noexcept {
-        return IpQ_components_;
+    DPSKDemodulator::DPSKDemodulator(int positionality) {
+        SetPositionality(positionality);
     }
 
-    complex<double> InPhaseAndQuadratureComponents::ExtractInPhaseAndQuadratureComponentsSymbol(const vector<double>& one_symbol_samples) const {
+    DPSKDemodulator& DPSKDemodulator::SetPositionality(int positionality) {
+        SignalParameters::SetPositionality(positionality);
+        return *this;
+    }
+
+    complex<double> DPSKDemodulator::ExtractInPhaseAndQuadratureComponentsSymbol(const vector<double>& one_symbol_samples) const {
         if (one_symbol_samples.size() != cos_oscillation.size()) {
             throw logic_error("Samples number of symbol is not equal samples number cos and sin oscillation"s);
         }
@@ -31,13 +36,13 @@ namespace dpsk_demod {
             throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
         }
         const uint16_t kNumSamplesInSymbol = sampling_frequency_ / kUsedCarrierFrequency;
-        IpQ_components_.cos_oscillation.resize(kNumSamplesInSymbol);
-        IpQ_components_.sin_oscillation.resize(kNumSamplesInSymbol);
+        cos_oscillation.resize(kNumSamplesInSymbol);
+        sin_oscillation.resize(kNumSamplesInSymbol);
 
         const double kCyclicFrequencyCoefficient = 2 * M_PI * kUsedCarrierFrequency * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
         for (uint16_t sample_id = 0; sample_id < kNumSamplesInSymbol; ++sample_id) {
-            IpQ_components_.cos_oscillation[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
-            IpQ_components_.sin_oscillation[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
+            cos_oscillation[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
+            sin_oscillation[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
         }
     }
 

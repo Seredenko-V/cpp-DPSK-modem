@@ -1,6 +1,7 @@
 #include "math_operations.h"
 #include "gray_code.h"
 #include "dpsk_modulation.h"
+#include "dpsk_demodulator.h"
 
 #include <iostream>
 #include <cassert>
@@ -427,3 +428,94 @@ namespace dpsk_mod {
         }
     } // namespace tests
 } // namespace dpsk_mod
+
+namespace dpsk_demod {
+    namespace tests {
+        bool IsSameComplexDouble(const complex<double>& lhs, const complex<double>& rhs) {
+            return math::IsSameDouble(lhs.real(), rhs.real()) && math::IsSameDouble(lhs.imag(), rhs.imag());
+        }
+
+        void TestExtractInPhaseAndQuadratureComponentsSymbol() {
+            dpsk_mod::DPSKModulator modulator;
+            modulator.SetCarrierFrequency(1000u).SetSamplingFrequency(50'000u);
+            DPSKDemodulator demodulator;
+            demodulator.SetCarrierFrequency(1000u).SetSamplingFrequency(50'000u);
+            demodulator.FillCosAndSinOscillation();
+            // ОФМ-2 без сдвига созвездия
+            {
+                modulator.SetModulationFunction(dpsk_mod::Sin);
+                vector<double> mod_bit = modulator.Modulation({0});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0, 0.5}));
+            }{
+                modulator.SetModulationFunction(dpsk_mod::Sin);
+                vector<double> mod_bit = modulator.Modulation({1});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0, -0.5}));
+            }{
+                modulator.SetModulationFunction(dpsk_mod::Cos);
+                vector<double> mod_bit = modulator.Modulation({0});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {-0.5, 0}));
+            }{
+                modulator.SetModulationFunction(dpsk_mod::Cos);
+                vector<double> mod_bit = modulator.Modulation({1});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0.5, 0}));
+            }
+            // ОФМ-4
+            modulator.SetPositionality(4);
+            demodulator.SetPositionality(4);
+            modulator.SetModulationFunction(dpsk_mod::Sin);
+            { // без сдвига созвездия
+                vector<double> mod_bit = modulator.Modulation({1,0});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {-0.5, 0}));
+            }{
+                vector<double> mod_bit = modulator.Modulation({1,1});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0.5, 0}));
+            }{
+                vector<double> mod_bit = modulator.Modulation({0,1});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0, -0.5}));
+            }{
+                vector<double> mod_bit = modulator.Modulation({0,0});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0, -0.5}));
+            }
+            modulator.SetPhase(M_PI / 2);
+            demodulator.SetPhase(0);
+            { // со сдвигом созвездия на 90 градусов
+                modulator.SetModulationFunction(dpsk_mod::Sin);
+                vector<double> mod_bit = modulator.Modulation({1,0});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0, 0.5}));
+            }
+            // ОФМ-8 без сдвига созвездия
+            modulator.SetPositionality(8).SetPhase(0);
+            demodulator.SetPositionality(8).SetPhase(0);
+            modulator.SetModulationFunction(dpsk_mod::Sin);
+            {
+                vector<double> mod_bit = modulator.Modulation({1,0,1});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {-0.5, 0}));
+            }{
+                vector<double> mod_bit = modulator.Modulation({1,0,0});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(5 * M_PI / 4) / 2, sin(5 * M_PI / 4) / 2})); // ПУТАНИЦА СО ЗНАКАМИ (ВРАЩЕНИЕ ПО ЧАСОВОЙ)
+            }{
+                vector<double> mod_bit = modulator.Modulation({1,1,1});
+                complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
+                assert(IsSameComplexDouble(inphase_quadrature_components, {0.5, 0}));
+            }
+            cerr << "dpsk_demod::TestExtractInPhaseAndQuadratureComponentsSymbol has passed"s << endl;
+        }
+
+        void RunAllTests() {
+            TestExtractInPhaseAndQuadratureComponentsSymbol();
+
+            cerr << "dpsk_demod::AllTests has passed"s << endl;
+        }
+    } // namespace tests
+} // namespace dpsk_demod

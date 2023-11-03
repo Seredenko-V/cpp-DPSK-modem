@@ -1,6 +1,7 @@
 #include "math_operations.h"
 #include "gray_code.h"
 #include "dpsk_modulation.h"
+#include "dpsk_demodulator.h"
 
 #include <iostream>
 #include <cmath>
@@ -20,9 +21,10 @@ ostream& operator<<(ostream& out, const vector<Type>& vec) {
 }
 
 int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
-    math::tests::RunAllTests();
-    gray_code::tests::RunAllTests();
-    dpsk_mod::tests::RunAllTests();
+//    math::tests::RunAllTests();
+//    gray_code::tests::RunAllTests();
+//    dpsk_mod::tests::RunAllTests();
+    dpsk_demod::tests::RunAllTests();
 
 //    {
 //        dpsk_mod::DPSKModulator modulator;

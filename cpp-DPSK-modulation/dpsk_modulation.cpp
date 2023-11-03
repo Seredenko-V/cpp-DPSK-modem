@@ -72,8 +72,8 @@ namespace dpsk_mod {
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
-            // чтобы фаза была в пределах от 0 до 2*PI
-            while (phase_ > 2 * M_PI) {
+            // чтобы фаза была в пределах [0, 2*PI)
+            while (phase_ >= 2 * M_PI) {
                 phase_ -= 2 * M_PI;
             }
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
@@ -89,8 +89,8 @@ namespace dpsk_mod {
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
-            // чтобы фаза была в пределах от 0 до 2*PI
-            while (phase_ > 2 * M_PI) {
+            // чтобы фаза была в пределах [0, 2*PI)
+            while (phase_ >= 2 * M_PI) {
                 phase_ -= 2 * M_PI;
             }
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
