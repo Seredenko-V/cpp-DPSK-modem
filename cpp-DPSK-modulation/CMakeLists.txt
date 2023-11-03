@@ -8,7 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(MATH_OPERATIONS math_operations.h math_operations.cpp)
 set(GRAY_CODE gray_code.h gray_code.cpp)
-set(DPSK_MODULATION dpsk_modulation.h dpsk_modulation.cpp)
 
-add_executable(cpp-DPSK-modulation main.cpp ${GRAY_CODE} ${DPSK_MODULATION} ${MATH_OPERATIONS} tests.cpp)
+set(SIGNAL_PARAMS signal_parameters.h signal_parameters.cpp)
+set(DPSK_MODULATION dpsk_modulation.h dpsk_modulation.cpp)
+set(DPSK_DEMODULATOR dpsk_demodulator.h dpsk_demodulator.cpp)
+
+add_executable(cpp-DPSK-modulation main.cpp ${GRAY_CODE} ${SIGNAL_PARAMS} ${DPSK_MODULATION} ${DPSK_DEMODULATOR} ${MATH_OPERATIONS} tests.cpp)
 

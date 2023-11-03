@@ -21,66 +21,10 @@ namespace dpsk_mod {
     DPSKModulator& DPSKModulator::SetPositionality(int positionality) {
         // чтобы не заполнять повторно словарь с разностью фаз
         if (positionality_ != positionality) {
-            if (!math::IsPowerOfTwo(positionality)) {
-                throw invalid_argument("Positionality is not a power of two."s);
-            }
-            positionality_ = positionality;
+            SignalParameters::SetPositionality(positionality);
             FillPhaseShifts();
         }
         return *this;
-    }
-
-    uint16_t DPSKModulator::GetPositionality() const noexcept {
-        return positionality_;
-    }
-
-    DPSKModulator& DPSKModulator::SetCarrierFrequency(int carrier_frequency) {
-        if (carrier_frequency <= 0) {
-            throw invalid_argument("Value "s + to_string(carrier_frequency) + " of carrier frequency isn't positive"s);
-        }
-        carrier_frequency_ = carrier_frequency;
-        carrier_cyclic_frequency_ = 2 * M_PI * carrier_frequency_;
-        return *this;
-    }
-
-    uint32_t DPSKModulator::GetCarrierFrequency() const noexcept {
-        return carrier_frequency_;
-    }
-
-    DPSKModulator& DPSKModulator::SetIntermediateFrequency(int intermediate_frequency) {
-        if (intermediate_frequency <= 0) {
-            throw invalid_argument("Value "s + to_string(intermediate_frequency) + " of intermediate frequency isn't positive"s);
-        }
-        intermediate_frequency_ = intermediate_frequency;
-        intermediate_cyclic_frequency_ = 2 * M_PI * intermediate_frequency_;
-        return *this;
-    }
-
-    /// Получить значение промежуточной частоты
-    uint32_t DPSKModulator::GetIntermediateFrequency() const noexcept {
-        return intermediate_frequency_;
-    }
-
-    DPSKModulator& DPSKModulator::SetSamplingFrequency(int sampling_frequency) {
-        if (sampling_frequency <= 0) {
-            throw invalid_argument("Value "s + to_string(sampling_frequency) + " of sampling frequency isn't positive"s);
-        }
-        sampling_frequency_ = sampling_frequency;
-        time_step_between_samples_ = 1.0 / sampling_frequency_;
-        return *this;
-    }
-
-    uint32_t DPSKModulator::GetSamplingFrequency() const noexcept {
-        return sampling_frequency_;
-    }
-
-    DPSKModulator& DPSKModulator::SetPhase(double new_phase) {
-        phase_ = new_phase;
-        return *this;
-    }
-
-    double DPSKModulator::GetPhase() const noexcept {
-        return phase_;
     }
 
     DPSKModulator& DPSKModulator::SetModulationFunction(function<double(double)> mod_function) {
@@ -112,7 +56,6 @@ namespace dpsk_mod {
         }
     }
 
-    // ================================== Modulation ====================================>
     void DPSKModulator::ModulationOneSymbol(vector<double>::iterator begin_samples, vector<double>::iterator end_samples, uint16_t current_symbol, double& phase) const {
         const double kFixedCoefficient = carrier_cyclic_frequency_ * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
         const double kPhaseDifferent = phase_shifts_.find(current_symbol)->second;
@@ -184,51 +127,4 @@ namespace dpsk_mod {
         SetPositionality(positionality);
         return Modulation(bits);
     }
-    // <================================= Modulation =====================================
-
-    // ================================== Demodulation ==================================>
-    const InPhaseAndQuadratureComponents& DPSKModulator::GetInPhaseAndQuadratureComponents() const noexcept {
-        return IpQ_components_;
-    }
-
-    complex<double> InPhaseAndQuadratureComponents::ExtractInPhaseAndQuadratureComponentsSymbol(const vector<double>& one_symbol_samples) const {
-        if (one_symbol_samples.size() != cos_oscillation.size()) {
-            throw logic_error("Samples number of symbol is not equal samples number cos and sin oscillation"s);
-        }
-        double cos_component = 0.0;
-        double sin_component = 0.0;
-        // скалярное произведение с косинусным и синусным колебанием
-        for (size_t sample_id = 0; sample_id < one_symbol_samples.size(); ++sample_id) {
-            cos_component += one_symbol_samples[sample_id] * cos_oscillation[sample_id];
-            sin_component += one_symbol_samples[sample_id] * sin_oscillation[sample_id];
-        }
-        // нормировка
-        cos_component /= one_symbol_samples.size();
-        sin_component /= one_symbol_samples.size();
-        return {cos_component, sin_component};
-    }
-
-    void DPSKModulator::FillCosAndSinOscillation() {
-        const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
-        // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
-        if (sampling_frequency_ % kUsedCarrierFrequency) {
-            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
-        }
-        const uint16_t kNumSamplesInSymbol = sampling_frequency_ / kUsedCarrierFrequency;
-        IpQ_components_.cos_oscillation.resize(kNumSamplesInSymbol);
-        IpQ_components_.sin_oscillation.resize(kNumSamplesInSymbol);
-
-        const double kCyclicFrequencyCoefficient = 2 * M_PI * kUsedCarrierFrequency * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
-        for (uint16_t sample_id = 0; sample_id < kNumSamplesInSymbol; ++sample_id) {
-            IpQ_components_.cos_oscillation[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
-            IpQ_components_.sin_oscillation[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
-        }
-    }
-
-    vector<bool> DPSKModulator::Demodulation(const vector<double>& samples) {
-
-
-        return {};
-    }
-    // <================================= Demodulation ===================================
 } // namespace dpsk_mod

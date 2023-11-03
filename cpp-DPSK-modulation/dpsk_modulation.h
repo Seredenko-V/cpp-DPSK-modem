@@ -1,4 +1,5 @@
 #pragma once
+#include "signal_parameters.h"
 
 #include <cstdint>
 #include <vector>
@@ -11,52 +12,15 @@ namespace dpsk_mod {
     static std::function<double(double)> Sin = (double(*)(double))&std::sin;
     static std::function<double(double)> Cos = (double(*)(double))&std::cos;
 
-    struct InPhaseAndQuadratureComponents {
-        /// Извлечь синфазную и квадратурную составляющие символа. Сложность: O(N)
-        std::complex<double> ExtractInPhaseAndQuadratureComponentsSymbol(const std::vector<double>& one_symbol_samples) const;
-
-        // один период косинуса и синуса
-        std::vector<double> cos_oscillation;
-        std::vector<double> sin_oscillation;
-    };
-
     /// Модулятор относительной фазовой модуляции (ОФМ) любой позиционности, являющейся степенью двойки
     /// https://ru.dsplib.org/content/signal_qpsk/signal_qpsk.html
-    class DPSKModulator {
+    class DPSKModulator : public SignalParameters {
     public:
         /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(positionality)
         DPSKModulator(int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(positionality)
         DPSKModulator& SetPositionality(int positionality);
-
-        /// Получить текущее количество позиций фаз. Сложность: O(1)
-        uint16_t GetPositionality() const noexcept;
-
-        /// Установить значение несущей частоты. Сложность: O(1)
-        DPSKModulator& SetCarrierFrequency(int carrier_frequency);
-
-        /// Получить значение несущей частоты. Сложность: O(1)
-        uint32_t GetCarrierFrequency() const noexcept;
-
-        /// Установить значение промежуточной частоты (на случай не кратности частоты дискретизации несущей). Сложность: O(1)
-        DPSKModulator& SetIntermediateFrequency(int intermediate_frequency);
-
-        /// Получить значение промежуточной частоты. Сложность: O(1)
-        uint32_t GetIntermediateFrequency() const noexcept;
-
-        /// Установить значение частоты дискретизации. Сложность: O(1)
-        DPSKModulator& SetSamplingFrequency(int sampling_frequency);
-
-        /// Получить значение частоты дискретизации. Сложность: O(1)
-        uint32_t GetSamplingFrequency() const noexcept;
-
-        /// Установить текущее значение фазы. Позволяет сдвинуть сигнальное созвездие на заданный в ГРАДУСАХ угол.
-        /// Значение со знаком "+" - сдвиг по против часовой стрелки; со знаком "-" - по часовой стрелке
-        DPSKModulator& SetPhase(double new_phase);
-
-        /// Получить текущее значение фазы. Сложность: O(1)
-        double GetPhase() const noexcept;
 
         /// Установить модулирующую и ортогональную ей функции: cos/sin. Сложность: O(1)
         DPSKModulator& SetModulationFunction(std::function<double(double)> mod_function);
@@ -71,22 +35,15 @@ namespace dpsk_mod {
         /// Модуляция последовательности бит с указанием нужной позиционности. Сложность: O(positionality + N)
         std::vector<double> Modulation(const std::vector<bool>& bits, int positionality);
 
-        /// Модуляция одного символа. Сложность: O(sampling_frequency / carrier_frequency)
-        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase) const;
-
         // в дальнейшем появятся перегрузки для записи в принимаемый по НЕ константной ссылке контейнер
         // и для приёма пары итераторов, указывающих на контейнер с битами
 
-        /// Получить косинусную и синусную составляющие при заданных ранее частотах. Сложность: O(1)
-        const InPhaseAndQuadratureComponents& GetInPhaseAndQuadratureComponents() const noexcept;
-
-        /// Демодуляция последовательности отсчетов. Сложность: O(???)
-        std::vector<bool> Demodulation(const std::vector<double>& samples);
+        /// Модуляция одного символа. Сложность: O(sampling_frequency / carrier_frequency)
+        void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase) const;
 
     private:
         /// Заполнить словарь со значениями сдвигов фаз. Сложность: O(positionality)
         void FillPhaseShifts();
-
 
         /// Модуляция без изпользования промежуточной частоты. Частота дискретизации кратна несущей частоте. Сложность: O(N)
         void ClassicalModulation(const std::vector<uint32_t>& symbols, std::vector<double>& modulated_signal, uint16_t num_samples_in_symbol);
@@ -94,27 +51,10 @@ namespace dpsk_mod {
         /// Модуляция с изпользованием промежуточной частоты. Частота дискретизации НЕ кратна несущей частоте. Сложность: O(N)
         void ModulationWithUseIntermediateFreq(const std::vector<uint32_t>& symbols, std::vector<double>& modulated_signal, uint16_t num_samples_in_symbol);
 
-        /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность(sampling_frequency / carrier_frequency)
-        void FillCosAndSinOscillation();
-
-
     private:
         std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги в градусах, соответствующие символу
-        uint16_t positionality_ = 0u; // позиционность ОФМ
-        double amplitude_ = 1.0; // амплитуда колебания
-        double phase_ = 0; // текущая фаза, радианы
-        InPhaseAndQuadratureComponents IpQ_components_;
         std::function<double(double)> mod_function_ = Sin;
         std::function<double(double)> ortogonal_mod_function_ = Cos;
-
-        uint32_t carrier_frequency_ = 0u; // несущая частота, Гц
-        double carrier_cyclic_frequency_ = 0.0; // циклическая несущая частота, радианы
-
-        uint32_t sampling_frequency_ = 0u; // частота дискретизации, Гц
-        double time_step_between_samples_ = 0.0; // шаг дискретизации во временной области, с
-
-        uint32_t intermediate_frequency_ = 1000u; // промежуточная частота, Гц
-        double intermediate_cyclic_frequency_ = 0.0; // циклическая промежуточная частота, радианы
     };
 
     namespace tests {
