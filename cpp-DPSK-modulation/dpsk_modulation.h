@@ -20,7 +20,7 @@ namespace dpsk_mod {
         DPSKModulator(int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
-        DPSKModulator& SetPositionality(int positionality);
+        DPSKModulator& SetPositionality(int positionality) override;
 
         /// Установить модулирующую и ортогональную ей функции: cos/sin. Сложность: O(1)
         DPSKModulator& SetModulationFunction(std::function<double(double)> mod_function);
