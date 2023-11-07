@@ -24,7 +24,7 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
 //    math::tests::RunAllTests();
 //    gray_code::tests::RunAllTests();
 //    dpsk_mod::tests::RunAllTests();
-//    dpsk_demod::tests::RunAllTests();
+    dpsk_demod::tests::RunAllTests();
 
 //    {
 //        dpsk_mod::DPSKModulator modulator;
