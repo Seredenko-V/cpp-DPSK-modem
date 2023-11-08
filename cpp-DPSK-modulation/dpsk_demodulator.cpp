@@ -29,6 +29,10 @@ namespace dpsk_demod {
         return {cos_component, sin_component};
     }
 
+    double DPSKDemodulator::ExtractPhaseValue(complex<double> inphase_quadrature_components) const {
+        return atan2(inphase_quadrature_components.imag(), inphase_quadrature_components.real());
+    }
+
     void DPSKDemodulator::FillCosAndSinOscillation() {
         const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
         // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
@@ -44,6 +48,10 @@ namespace dpsk_demod {
             cos_oscillation[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
             sin_oscillation[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
         }
+    }
+
+    void DPSKDemodulator::FillSymbolsBounds() {
+
     }
 
     vector<bool> DPSKDemodulator::Demodulation(const vector<double>& samples) {

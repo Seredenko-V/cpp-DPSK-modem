@@ -462,7 +462,7 @@ namespace dpsk_demod {
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
                 assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI) / 2, sin(M_PI) / 2}));
             }
-            // ОФМ-4
+            // ОФМ-4 без сдвига созвездия
             modulator.SetPositionality(4).SetPhase(0);
             demodulator.SetPositionality(4).SetPhase(0);
             modulator.SetModulationFunction(dpsk_mod::Sin);
@@ -547,9 +547,27 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestExtractInPhaseAndQuadratureComponentsSymbol has passed"s << endl;
         }
 
+        void TestExtractPhaseValue() {
+            using namespace math;
+            DPSKDemodulator demodulator;
+            demodulator.SetCarrierFrequency(1000u).SetSamplingFrequency(50'000u);
+            demodulator.FillCosAndSinOscillation();
+            // ОФМ-4
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({0.5, 0}), 0));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({-0.5, 0}), M_PI));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({0, 0.5}), M_PI / 2));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({0, -0.5}), -M_PI / 2));
+            // ОФМ-8
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(M_PI / 4) / 2, sin(M_PI / 4) / 2}), M_PI / 4));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(3 * M_PI / 4) / 2, sin(3 * M_PI / 4) / 2}), 3 * M_PI / 4));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(-3 * M_PI / 4) / 2, sin(-3 * M_PI / 4) / 2}), -3 * M_PI / 4));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(-M_PI / 4) / 2, sin(-M_PI / 4) / 2}), -M_PI / 4));
+            cerr << "dpsk_demod::TestExtractPhaseValue has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
-
+            TestExtractPhaseValue();
             cerr << "dpsk_demod::AllTests has passed"s << endl;
         }
     } // namespace tests

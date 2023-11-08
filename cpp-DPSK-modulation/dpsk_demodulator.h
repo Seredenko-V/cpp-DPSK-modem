@@ -17,12 +17,19 @@ namespace dpsk_demod {
         /// Извлечь синфазную и квадратурную составляющие символа (элементарного сиганала). Сложность: O(N)
         std::complex<double> ExtractInPhaseAndQuadratureComponentsSymbol(const std::vector<double>& one_symbol_samples) const;
 
+        /// Извлечь значение фазы (угла) из синфазной и квадратурной составляющих элементарного сигнала. Сложность: O(????)
+        double ExtractPhaseValue(std::complex<double> inphase_quadrature_components) const;
+
         /// Демодуляция последовательности отсчетов. Сложность: O(???)
         std::vector<bool> Demodulation(const std::vector<double>& samples);
 
 //    private:
         /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность(sampling_frequency / carrier_frequency)
         void FillCosAndSinOscillation();
+
+    private:
+        /// Заполнить границы (сектора) символов на огружности
+        void FillSymbolsBounds();
 
     private:
         // один период косинуса и синуса
@@ -32,6 +39,7 @@ namespace dpsk_demod {
 
     namespace tests {
         void TestExtractInPhaseAndQuadratureComponentsSymbol();
+        void TestExtractPhaseValue();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod
