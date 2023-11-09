@@ -77,7 +77,9 @@ namespace dpsk_mod {
                 phase_ -= 2 * M_PI;
             }
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
-                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * mod_function_(kCyclicFrequencyCoefficient * sample_id + phase_);
+//                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * mod_function_(kCyclicFrequencyCoefficient * sample_id + phase_);
+                // минус phase_ т.к. вращение по окружности против часовой стрелки (сложение на окружности). Плюс - вращение по часовой (вычитание на окружности)
+                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * mod_function_(kCyclicFrequencyCoefficient * sample_id - phase_);
             }
         }
     }
@@ -95,8 +97,9 @@ namespace dpsk_mod {
             }
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
                 size_t time_difference_step = sample_id + symbol_id * num_samples_in_symbol;
-                double sample_of_signal_on_intermediate_frequency = amplitude_ * mod_function_(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
-                double sample_of_orthogonal_signal = amplitude_ * ortogonal_mod_function_(kIntermediateCyclicFrequencyCoefficient * time_difference_step + phase_);
+                // минус phase_ т.к. вращение по окружности против часовой стрелки (сложение на окружности). Плюс - вращение по часовой (вычитание на окружности)
+                double sample_of_signal_on_intermediate_frequency = amplitude_ * mod_function_(kIntermediateCyclicFrequencyCoefficient * time_difference_step - phase_);
+                double sample_of_orthogonal_signal = amplitude_ * ortogonal_mod_function_(kIntermediateCyclicFrequencyCoefficient * time_difference_step - phase_);
                 modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = sample_of_signal_on_intermediate_frequency *
                         ortogonal_mod_function_(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step) - sample_of_orthogonal_signal
                         * mod_function_(kDiffrerenceCyclicFrequencyCoefficient * time_difference_step);

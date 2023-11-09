@@ -46,7 +46,8 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
 //        for (double sample : mod_signal) {
 //            fout << sample << endl;
 //        }
-//    }{
+//    }
+//    {
 //        dpsk_mod::DPSKModulator modulator;
 //        modulator.SetCarrierFrequency(1800u).SetSamplingFrequency(19200u).SetIntermediateFrequency(1200u).SetPositionality(2);
 //        vector<bool> bits{0,
@@ -70,6 +71,16 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
 //                          0};
 //        vector<double> mod_signal = modulator.Modulation(bits);
 //        ofstream fout("mod_imitator.txt"s);
+//        fout << mod_signal;
+//    }
+//    {
+//        dpsk_mod::DPSKModulator modulator;
+////        modulator.SetModulationFunction(dpsk_mod::Cos);
+////        modulator.SetPositionality(4);
+//        modulator.SetCarrierFrequency(1000).SetSamplingFrequency(50000u).SetPositionality(4);
+//        vector<bool> bits{1,0, 1,1, 0,1, 0,0};
+//        vector<double> mod_signal = modulator.Modulation(bits);
+//        ofstream fout("test_mod.txt"s);
 //        fout << mod_signal;
 //    }
     return 0;

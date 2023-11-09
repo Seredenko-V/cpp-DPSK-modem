@@ -5,7 +5,7 @@
 class SignalParameters {
 public:    
     /// Установить позиционность модуляции. Сложность: O(1)
-    SignalParameters& SetPositionality(int positionality);
+    virtual SignalParameters& SetPositionality(int positionality);
 
     /// Получить текущее количество позиций фаз. Сложность: O(1)
     uint16_t GetPositionality() const noexcept;
