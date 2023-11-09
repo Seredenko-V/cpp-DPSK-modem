@@ -578,10 +578,24 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestFillSymbolsBounds has passed"s << endl;
         }
 
+        void TestFillSymbolsSequenceOnCircle() {
+            { // ОФМ-2
+                DPSKDemodulator demodulator(2);
+                vector<uint16_t> expected_symbols{0, 1};
+                assert(expected_symbols == demodulator.GetSymbolsSequenceOnCircle());
+            }{ // ОФМ-8
+                DPSKDemodulator demodulator(8);
+                vector<uint16_t> expected_symbols{0,1,3,2,6,7,5,4};
+                assert(expected_symbols == demodulator.GetSymbolsSequenceOnCircle());
+            }
+            cerr << "dpsk_demod::TestFillSymbolsSequenceOnCircle has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
             TestExtractPhaseValue();
             TestFillSymbolsBounds();
+            TestFillSymbolsSequenceOnCircle();
             cerr << "dpsk_demod::AllTests has passed"s << endl;
         }
     } // namespace tests

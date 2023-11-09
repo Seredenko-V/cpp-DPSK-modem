@@ -16,7 +16,7 @@ namespace dpsk_mod {
     /// https://ru.dsplib.org/content/signal_qpsk/signal_qpsk.html
     class DPSKModulator : public SignalParameters {
     public:
-        /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * (positionality * log2(positionality)))
+        /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
         DPSKModulator(int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))

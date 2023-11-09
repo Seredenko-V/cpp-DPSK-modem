@@ -1,4 +1,6 @@
 #include "dpsk_demodulator.h"
+#include "gray_code.h"
+#include "math_operations.h"
 
 using namespace std;
 
@@ -10,6 +12,7 @@ namespace dpsk_demod {
     DPSKDemodulator& DPSKDemodulator::SetPositionality(int positionality) {
         SignalParameters::SetPositionality(positionality);
         FillSymbolsBounds();
+        FillSymbolsSequenceOnCircle();
         return *this;
     }
 
@@ -55,7 +58,7 @@ namespace dpsk_demod {
         bounds_symbols_.resize(positionality_);
         const double kStepPhase = 2 * M_PI / positionality_;
         // значение bounds_symbols_[0] уже является нулём
-        for (size_t i = 1; i < bounds_symbols_.size(); ++i) {
+        for (uint16_t i = 1; i < positionality_; ++i) {
             bounds_symbols_[i] = bounds_symbols_[i - 1] + kStepPhase;
         }
     }
@@ -63,6 +66,19 @@ namespace dpsk_demod {
     const vector<double>& DPSKDemodulator::GetBoundsSymbols() const noexcept {
         return bounds_symbols_;
     }
+
+    void DPSKDemodulator::FillSymbolsSequenceOnCircle() {
+        symbols_sequence_on_circle_.resize(positionality_);
+        vector<vector<bool>> grey_codes = gray_code::MakeGrayCodes(positionality_);
+        for (uint16_t i = 0; i < positionality_; ++i) {
+            symbols_sequence_on_circle_[i] = math::ConvertationBinToDec(grey_codes[i]);
+        }
+    }
+
+    const vector<uint16_t>& DPSKDemodulator::GetSymbolsSequenceOnCircle() const noexcept {
+        return symbols_sequence_on_circle_;
+    }
+
 
     vector<bool> DPSKDemodulator::Demodulation(const vector<double>& samples) {
 

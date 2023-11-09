@@ -8,7 +8,7 @@
 namespace dpsk_demod {
     class DPSKDemodulator : public SignalParameters {
     public:
-        /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * (positionality * log2(positionality)))
+        // По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
         DPSKDemodulator(int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
@@ -27,23 +27,32 @@ namespace dpsk_demod {
         /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность(sampling_frequency / carrier_frequency)
         void FillCosAndSinOscillation();
 
+        /// Получить значения границ диапазонов разностей фаз между символами
         const std::vector<double>& GetBoundsSymbols() const noexcept;
 
+        /// Получить последовательность символов на окружности в соответствии с кодом Грея
+        const std::vector<uint16_t>& GetSymbolsSequenceOnCircle() const noexcept;
+
     private:
-        /// Заполнить границы (сектора) символов на огружности
+        /// Заполнить границы (сектора) символов на огружности. Сложность: O(positionality)
         void FillSymbolsBounds();
+
+        /// Заполнить последовательность символов на окружности от 0 до 2*PI в соответсвии с кодом Грея. Сложность: O(2 * positionality * log2(positionality))
+        void FillSymbolsSequenceOnCircle();
 
     private:
         // один период косинуса и синуса
         std::vector<double> cos_oscillation_;
         std::vector<double> sin_oscillation_;
         std::vector<double> bounds_symbols_; // границы диапазонов разностей фаз между символами
+        std::vector<uint16_t> symbols_sequence_on_circle_; // полследовательность символов на окружности в соответствии с кодом Грея
     };
 
     namespace tests {
         void TestExtractInPhaseAndQuadratureComponentsSymbol();
         void TestExtractPhaseValue();
         void TestFillSymbolsBounds();
+        void TestFillSymbolsSequenceOnCircle();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod
