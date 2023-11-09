@@ -27,19 +27,23 @@ namespace dpsk_demod {
         /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность(sampling_frequency / carrier_frequency)
         void FillCosAndSinOscillation();
 
+        const std::vector<double>& GetBoundsSymbols() const noexcept;
+
     private:
         /// Заполнить границы (сектора) символов на огружности
         void FillSymbolsBounds();
 
     private:
         // один период косинуса и синуса
-        std::vector<double> cos_oscillation;
-        std::vector<double> sin_oscillation;
+        std::vector<double> cos_oscillation_;
+        std::vector<double> sin_oscillation_;
+        std::vector<double> bounds_symbols_; // границы диапазонов разностей фаз между символами
     };
 
     namespace tests {
         void TestExtractInPhaseAndQuadratureComponentsSymbol();
         void TestExtractPhaseValue();
+        void TestFillSymbolsBounds();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod

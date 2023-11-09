@@ -8,6 +8,8 @@
 #include <vector>
 #include <fstream>
 
+#include <map>
+
 using namespace std;
 
 template <typename Type>
@@ -25,6 +27,15 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
 //    gray_code::tests::RunAllTests();
 //    dpsk_mod::tests::RunAllTests();
     dpsk_demod::tests::RunAllTests();
+
+    map<pair<double, double>, uint16_t> bounds{
+        {{0.0, 0.2}, 0},
+        {{0.2, 0.4}, 1},
+        {{0.4, 0.6}, 2}
+    };
+    pair<double, double> par{0.0, 0.2};
+    double value = 0.2;
+    cout << !less<double>()(value, par.first) << '\t' << less<double>()(value, par.second) << endl; // [par.first, par.second)
 
 //    {
 //        dpsk_mod::DPSKModulator modulator;

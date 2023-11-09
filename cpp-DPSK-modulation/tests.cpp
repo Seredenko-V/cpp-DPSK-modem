@@ -565,9 +565,23 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestExtractPhaseValue has passed"s << endl;
         }
 
+        void TestFillSymbolsBounds() {
+            { // ОФМ-2
+                DPSKDemodulator demodulator(2);
+                vector<double> expected_bounds{0, M_PI};
+                assert(math::IsSameContainersWithDouble(expected_bounds, demodulator.GetBoundsSymbols()));
+            }{ // ОФМ-8
+                DPSKDemodulator demodulator(8);
+                vector<double> expected_bounds{0, M_PI / 4, M_PI / 2, 3 * M_PI / 4, M_PI, 5 * M_PI / 4, 3 * M_PI / 2, 7 * M_PI / 4};
+                assert(math::IsSameContainersWithDouble(expected_bounds, demodulator.GetBoundsSymbols()));
+            }
+            cerr << "dpsk_demod::TestFillSymbolsBounds has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
             TestExtractPhaseValue();
+            TestFillSymbolsBounds();
             cerr << "dpsk_demod::AllTests has passed"s << endl;
         }
     } // namespace tests
