@@ -36,6 +36,25 @@ namespace dpsk_demod {
         return {cos_component, sin_component};
     }
 
+    complex<double> DPSKDemodulator::ExtractInPhaseAndQuadratureComponentsSymbol(vector<double>::const_iterator left_bound, vector<double>::const_iterator right_bound) const {
+        const size_t kNumSamplesPerSymbol = distance(left_bound, right_bound);
+        if (kNumSamplesPerSymbol != cos_oscillation_.size()) {
+            throw logic_error("Samples number of symbol is not equal samples number cos and sin oscillation"s);
+        }
+        double cos_component = 0.0;
+        double sin_component = 0.0;
+        // скалярное произведение с косинусным и синусным колебанием
+        for (vector<double>::const_iterator it_signal = left_bound, it_cos = cos_oscillation_.begin(), it_sin = sin_oscillation_.begin();
+             it_signal != right_bound; ++it_signal, ++it_cos, ++it_sin) {
+            cos_component += *it_signal * *it_cos;
+            sin_component += *it_signal * *it_sin;
+        }
+        // нормировка
+        cos_component /= kNumSamplesPerSymbol;
+        sin_component /= kNumSamplesPerSymbol;
+        return {cos_component, sin_component};
+    }
+
     double DPSKDemodulator::ExtractPhaseValue(complex<double> inphase_quadrature_components) const {
         return atan2(inphase_quadrature_components.imag(), inphase_quadrature_components.real());
     }
@@ -99,10 +118,25 @@ namespace dpsk_demod {
     }
 
 
-    vector<bool> DPSKDemodulator::Demodulation(const vector<double>& samples) {
+    vector<uint16_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
+        // потом добавить проверку на кратность частот
+        const uint32_t kNumSamplesPerSymbol = sampling_frequency_ / carrier_frequency_;
+        // добавить проверку количества отсчетов на кратность kNumSamplesPerSymbol
+        vector<uint16_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol);
 
+        for (size_t i = 0; i < samples.size() - kNumSamplesPerSymbol; i += kNumSamplesPerSymbol) {
+            // нужна разность фаз
+            vector<double>::const_iterator first_symbol_begin_it = samples.begin() + i;
+            vector<double>::const_iterator first_symbol_end_it = samples.begin() + i + kNumSamplesPerSymbol;
+            complex<double> symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(first_symbol_begin_it, first_symbol_end_it);
 
-        return {};
+            vector<double>::const_iterator second_symbol_begin_it = samples.begin() + i + kNumSamplesPerSymbol;
+            vector<double>::const_iterator second_symbol_end_it = samples.begin() + i + 2 * kNumSamplesPerSymbol;
+            complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
+
+            demodulated_symbols[i] = DefineSymbol(ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(symbol_IQ_components));
+        }
+        return demodulated_symbols;
     }
     // <================================= Demodulation ===================================
 

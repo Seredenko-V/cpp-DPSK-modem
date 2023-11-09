@@ -1,4 +1,4 @@
-#include "dpsk_modulation.h"
+#include "dpsk_modulator.h"
 #include "math_operations.h"
 #include "gray_code.h"
 
