@@ -2,6 +2,9 @@
 #include "gray_code.h"
 #include "math_operations.h"
 
+#include <cassert>
+#include <functional>
+
 using namespace std;
 
 namespace dpsk_demod {
@@ -55,9 +58,9 @@ namespace dpsk_demod {
     }
 
     void DPSKDemodulator::FillSymbolsBounds() {
-        bounds_symbols_.resize(positionality_);
         const double kStepPhase = 2 * M_PI / positionality_;
-        // значение bounds_symbols_[0] уже является нулём
+        bounds_symbols_.resize(positionality_, kStepPhase / 2);
+        // значение bounds_symbols_[0] уже задано верно
         for (uint16_t i = 1; i < positionality_; ++i) {
             bounds_symbols_[i] = bounds_symbols_[i - 1] + kStepPhase;
         }
@@ -77,6 +80,22 @@ namespace dpsk_demod {
 
     const vector<uint16_t>& DPSKDemodulator::GetSymbolsSequenceOnCircle() const noexcept {
         return symbols_sequence_on_circle_;
+    }
+
+    uint16_t DPSKDemodulator::DefineSymbol(double phase_difference) const noexcept {
+        // чтобы фаза была в пределах [0, 2*PI)
+        while (phase_difference >= 2 * M_PI) {
+            phase_difference -= 2 * M_PI;
+        }
+        assert(!bounds_symbols_.empty());
+        // lower_bound вернет итератор, чтобы получить индекс - нужно использовать distance, что сделает сложность O(N*N*log2(N))
+        for (size_t i = 0; i < bounds_symbols_.size() - 1; ++i) {
+            // принадлежность интервалу [bounds_symbols_[i], bounds_symbols_[i + 1])
+            if (!less<double>()(phase_difference, bounds_symbols_[i]) && less<double>()(phase_difference, bounds_symbols_[i + 1])) {
+                return symbols_sequence_on_circle_[i + 1];
+            }
+        }
+        return symbols_sequence_on_circle_.front(); // последний интервал значений
     }
 
 

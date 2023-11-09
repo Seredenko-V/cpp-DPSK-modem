@@ -17,7 +17,7 @@ namespace dpsk_demod {
         /// Извлечь синфазную и квадратурную составляющие символа (элементарного сиганала). Сложность: O(N)
         std::complex<double> ExtractInPhaseAndQuadratureComponentsSymbol(const std::vector<double>& one_symbol_samples) const;
 
-        /// Извлечь значение фазы (угла) из синфазной и квадратурной составляющих элементарного сигнала. Сложность: O(????)
+        /// Извлечь значение фазы (угла) из синфазной и квадратурной составляющих элементарного сигнала. Сложность: O(1)
         double ExtractPhaseValue(std::complex<double> inphase_quadrature_components) const;
 
         /// Демодуляция последовательности отсчетов. Сложность: O(???)
@@ -32,6 +32,9 @@ namespace dpsk_demod {
 
         /// Получить последовательность символов на окружности в соответствии с кодом Грея
         const std::vector<uint16_t>& GetSymbolsSequenceOnCircle() const noexcept;
+
+        /// Определить символ на основании значения разности фаз между символами
+        uint16_t DefineSymbol(double phase_difference) const noexcept;
 
     private:
         /// Заполнить границы (сектора) символов на огружности. Сложность: O(positionality)
@@ -53,6 +56,7 @@ namespace dpsk_demod {
         void TestExtractPhaseValue();
         void TestFillSymbolsBounds();
         void TestFillSymbolsSequenceOnCircle();
+        void TestDefineSymbol();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod

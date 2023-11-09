@@ -568,11 +568,23 @@ namespace dpsk_demod {
         void TestFillSymbolsBounds() {
             { // ОФМ-2
                 DPSKDemodulator demodulator(2);
-                vector<double> expected_bounds{0, M_PI};
+                vector<double> expected_bounds{
+                    M_PI / 2,
+                    3 * M_PI / 2
+                };
                 assert(math::IsSameContainersWithDouble(expected_bounds, demodulator.GetBoundsSymbols()));
             }{ // ОФМ-8
                 DPSKDemodulator demodulator(8);
-                vector<double> expected_bounds{0, M_PI / 4, M_PI / 2, 3 * M_PI / 4, M_PI, 5 * M_PI / 4, 3 * M_PI / 2, 7 * M_PI / 4};
+                vector<double> expected_bounds{
+                    M_PI / 8,
+                    3 * M_PI / 8,
+                    5 * M_PI / 8,
+                    7 * M_PI / 8,
+                    9 * M_PI / 8,
+                    11 * M_PI / 8,
+                    13 * M_PI / 8,
+                    15 * M_PI / 8,
+                };
                 assert(math::IsSameContainersWithDouble(expected_bounds, demodulator.GetBoundsSymbols()));
             }
             cerr << "dpsk_demod::TestFillSymbolsBounds has passed"s << endl;
@@ -591,11 +603,32 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestFillSymbolsSequenceOnCircle has passed"s << endl;
         }
 
+        void TestDefineSymbol() {
+            { // ОФМ-2
+                DPSKDemodulator demodulator(2);
+                assert(demodulator.DefineSymbol(0) == 0);
+                assert(demodulator.DefineSymbol(M_PI / 4) == 0);
+                assert(demodulator.DefineSymbol(M_PI / 2) == 1); // на границе в пользу следующего символа
+                assert(demodulator.DefineSymbol(M_PI) == 1);
+                assert(demodulator.DefineSymbol(3 * M_PI / 4) == 1);
+                assert(demodulator.DefineSymbol(3 * M_PI / 2) == 0); // на границе в пользу следующего символа
+            }{ // ОФМ-8
+                DPSKDemodulator demodulator(8);
+                assert(demodulator.DefineSymbol(0) == 0);
+                assert(demodulator.DefineSymbol(3 * M_PI / 16) == 1);
+                assert(demodulator.DefineSymbol(24 * M_PI / 16) == 5);
+                assert(demodulator.DefineSymbol(2 * M_PI) == 0);
+                assert(demodulator.DefineSymbol(31 * M_PI / 16) == 0);
+            }
+            cerr << "dpsk_demod::TestDefineSymbol has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
             TestExtractPhaseValue();
             TestFillSymbolsBounds();
             TestFillSymbolsSequenceOnCircle();
+            TestDefineSymbol();
             cerr << "dpsk_demod::AllTests has passed"s << endl;
         }
     } // namespace tests

@@ -36,6 +36,7 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
     pair<double, double> par{0.0, 0.2};
     double value = 0.2;
     cout << !less<double>()(value, par.first) << '\t' << less<double>()(value, par.second) << endl; // [par.first, par.second)
+    cout << (!less<double>()(value, par.first) && less<double>()(value, par.second)) << endl;;
 
 //    {
 //        dpsk_mod::DPSKModulator modulator;
