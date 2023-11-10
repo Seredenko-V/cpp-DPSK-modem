@@ -34,6 +34,9 @@ namespace dpsk_mod {
         /// Получить словарь символов с соответствующими сдвигами по фазе <символ, фазовый сдвиг>. Сложность: O(1)
         const std::map<uint16_t, double>& GetPhaseShifts() const noexcept;
 
+        /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(positionality)
+        DPSKModulator& SetPhaseShift(double phase_shift) override;
+
         /// Модуляция последовательности бит.
         /// Сложность: O(N) - если опорный символ содержится в bits
         /// Сложность: O(2*N) - если опорный символ НЕ содержится в bits и его нужно добавить в начало
@@ -68,6 +71,8 @@ namespace dpsk_mod {
     namespace tests {
         void TestDefaultConstructor();
         void TestSetPositionality(); // установление позиционности с заполнением словаря разностей фаз
+        void TestSetPhaseShift(); // установление доп. фазового сдвига между символами
+
         void TestClassicalModulation(); // модуляция без переноса на промежуточную несущую
         void TestModulationWithUseIntermediateFreq(); // модуляция с переносом на промежуточную несущую
         void TestConstellationShift(); // сдвиг созвездия

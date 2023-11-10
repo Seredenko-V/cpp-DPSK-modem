@@ -37,6 +37,9 @@ namespace dpsk_demod {
         /// Определить символ на основании значения разности фаз между символами. Сложность: O(positionality)
         uint32_t DefineSymbol(double phase_difference) const noexcept;
 
+        /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(positionality)
+        DPSKDemodulator& SetPhaseShift(double phase_shift) override;
+
     private:
         /// Заполнить границы (сектора) символов на огружности. Сложность: O(positionality)
         void FillSymbolsBounds();
@@ -59,6 +62,8 @@ namespace dpsk_demod {
         void TestFillSymbolsSequenceOnCircle();
         void TestDefineSymbol();
         void TestDemodulation();
+        void TestSetPhaseShift();
+        void TestDemodulationWithPhaseShift();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod

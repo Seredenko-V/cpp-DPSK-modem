@@ -79,4 +79,11 @@ uint32_t SignalParameters::GetSamplingFrequency() const noexcept {
     return sampling_frequency_;
 }
 
+SignalParameters& SignalParameters::SetPhaseShift(double phase_shift) {
+    phase_shift_ = phase_shift;
+    return *this;
+}
 
+double SignalParameters::GetPhaseShift() const noexcept {
+    return phase_shift_;
+}

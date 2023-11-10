@@ -85,7 +85,7 @@ namespace dpsk_demod {
     void DPSKDemodulator::FillSymbolsBounds() {
         const double kStepPhase = 2 * M_PI / positionality_;
         bounds_symbols_.resize(positionality_);
-        bounds_symbols_[0] = kStepPhase / 2; // отступ от позиции сивола на окружности
+        bounds_symbols_[0] = kStepPhase / 2 + phase_shift_; // отступ от позиции сивола на окружности
         for (uint16_t i = 1; i < positionality_; ++i) {
             bounds_symbols_[i] = bounds_symbols_[i - 1] + kStepPhase;
         }
@@ -119,6 +119,12 @@ namespace dpsk_demod {
             }
         }
         return symbols_sequence_on_circle_.front(); // последний интервал значений
+    }
+
+    DPSKDemodulator& DPSKDemodulator::SetPhaseShift(double phase_shift) {
+        SignalParameters::SetPhaseShift(phase_shift);
+        FillSymbolsBounds();
+        return *this;
     }
 
     vector<uint32_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {

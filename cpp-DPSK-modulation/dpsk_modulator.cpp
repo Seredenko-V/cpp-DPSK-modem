@@ -43,6 +43,12 @@ namespace dpsk_mod {
         return phase_shifts_;
     }
 
+    DPSKModulator& DPSKModulator::SetPhaseShift(double phase_shift) {
+        SignalParameters::SetPhaseShift(phase_shift);
+        FillPhaseShifts();
+        return *this;
+    }
+
     void DPSKModulator::FillPhaseShifts() {
         phase_shifts_.clear();
         static constexpr double kTotalAngle = 360; // количество градусов на окружности
@@ -51,7 +57,7 @@ namespace dpsk_mod {
         double current_phase = 0;
         for (uint16_t i = 0; i < positionality_; ++i) {
             assert(current_phase < kTotalAngle);
-            phase_shifts_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase);
+            phase_shifts_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase + (phase_shift_ * 180 / M_PI));
             current_phase += kStepPhase;
         }
     }

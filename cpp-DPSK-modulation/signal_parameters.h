@@ -41,10 +41,17 @@ public:
     /// Получить значение частоты дискретизации. Сложность: O(1)
     uint32_t GetSamplingFrequency() const noexcept;
 
+    /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(1)
+    virtual SignalParameters& SetPhaseShift(double phase_shift);
+
+    /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(1)
+    double GetPhaseShift() const noexcept;
+
 protected:
     uint16_t positionality_ = 0u; // позиционность
     double amplitude_ = 1.; // амплитуда колебания, В
     double phase_ = 0.; // текущая фаза, радианы
+    double phase_shift_ = 0; // дополнительный фазовый сдвиг, радианы
 
     uint32_t carrier_frequency_ = 0u; // несущая частота, Гц
     double carrier_cyclic_frequency_ = 0.; // циклическая несущая частота, радианы

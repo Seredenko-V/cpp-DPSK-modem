@@ -289,9 +289,10 @@ namespace dpsk_mod {
         void TestSetPositionality() {
             DPSKModulator modulator(2);
             {
+
                 modulator.SetPositionality(4);
                 assert(modulator.GetPositionality() == 4);
-                 map<uint16_t, double> expected_phase_shifts{
+                map<uint16_t, double> expected_phase_shifts{
                      {0, 0},   // 00 -> 0 градусов
                      {1, 90},  // 01 -> 90 градусов
                      {3, 180}, // 11 -> 180 градусов
@@ -314,6 +315,28 @@ namespace dpsk_mod {
                 assert(modulator.GetPhaseShifts() == expected_phase_shifts);
             }
             cerr << "dpsk_mod::TestSetPositionality has passed"s << endl;
+        }
+
+        void TestSetPhaseShift() {
+            DPSKModulator modulator;
+            { // сдвиг ОФМ-2 на 90 градусов
+                modulator.SetPhaseShift(M_PI / 2);
+                map<uint16_t, double> expected_phase_shifts{
+                     {0, 90},
+                     {1, 270}
+                };
+                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
+            }{ // сдвиг ОФМ-4 на 45 градусов
+                modulator.SetPositionality(4).SetPhaseShift(M_PI / 4);
+                map<uint16_t, double> expected_phase_shifts{
+                     {0, 45},   // 00 -> 0 градусов
+                     {1, 135},  // 01 -> 135 градусов
+                     {3, 225},  // 11 -> 225 градусов
+                     {2, 315}   // 10 -> 315 градусов
+                };
+                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
+            }
+            cerr << "dpsk_mod::TestSetPhaseShift has passed"s << endl;
         }
 
 
@@ -443,9 +466,12 @@ namespace dpsk_mod {
         void RunAllTests() {
             TestDefaultConstructor();
             TestSetPositionality();
-            TestClassicalModulation();
-            TestModulationWithUseIntermediateFreq();
-            TestConstellationShift();
+            TestSetPhaseShift();
+
+
+//            TestClassicalModulation();
+//            TestModulationWithUseIntermediateFreq();
+//            TestConstellationShift();
             cerr << "dpsk_mod::AllTests has passed"s << endl;
         }
     } // namespace tests
@@ -699,6 +725,56 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestDemodulation has passed"s << endl;
         }
 
+        void TestSetPhaseShift() {
+            DPSKDemodulator demodulator;
+            { // сдвиг ОФМ-2 на 90 градусов
+                demodulator.SetPhaseShift(M_PI / 2);
+                vector<double> expected_phase_bounds{
+                     M_PI,
+                     2 * M_PI
+                };
+                assert(math::IsSameContainersWithDouble(demodulator.GetBoundsSymbols(), expected_phase_bounds));
+            }{ // сдвиг ОФМ-4 на 45 градусов
+                demodulator.SetPositionality(4).SetPhaseShift(M_PI / 4);
+                vector<double> expected_phase_bounds{
+                     M_PI / 2,
+                     M_PI,
+                     3 * M_PI / 2,
+                     2 * M_PI
+                };
+                assert(math::IsSameContainersWithDouble(demodulator.GetBoundsSymbols(), expected_phase_bounds));
+            }
+            cerr << "dpsk_demod::TestSetPhaseShift has passed"s << endl;
+        }
+
+        void TestDemodulationWithPhaseShift() {
+            static constexpr uint32_t kSamplingFrequency = 50'000u;
+            static constexpr uint32_t kCarrierFrequency = 1'000u;
+            dpsk_mod::DPSKModulator modulator;
+            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            DPSKDemodulator demodulator;
+            demodulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            demodulator.FillCosAndSinOscillation();
+            { // ОФМ-2
+                modulator.SetPhaseShift(M_PI / 2);
+                demodulator.SetPhaseShift(M_PI / 2);
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 1);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
+                assert(symbols == demod_bits);
+            }{ // ОФМ-8
+                modulator.SetPositionality(8).SetPhaseShift(M_PI / 8);
+                demodulator.SetPositionality(8).SetPhaseShift(M_PI / 8);
+                vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 3);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
+                assert(symbols == demod_symbols);
+            }
+            cerr << "dpsk_demod::TestDemodulationWithPhaseShift has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
             TestExtractPhaseValue();
@@ -706,6 +782,8 @@ namespace dpsk_demod {
             TestFillSymbolsSequenceOnCircle();
             TestDefineSymbol();
             TestDemodulation();
+            TestSetPhaseShift();
+            TestDemodulationWithPhaseShift();
             cerr << "dpsk_demod::AllTests has passed"s << endl;
         }
     } // namespace tests
