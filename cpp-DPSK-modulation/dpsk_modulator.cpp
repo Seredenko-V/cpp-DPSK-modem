@@ -101,7 +101,8 @@ namespace dpsk_mod {
         }
     }
 
-    vector<double> DPSKModulator::Modulation(const vector<bool>& bits) {
+    // Можно сделать в любом случае сложность O(N), путем написания перегрузки ConvertationBitsToDecValues, где будет добавляться опорный символ
+    vector<double> DPSKModulator::Modulation(const vector<bool>& bits, PresencePivotSymbol is_presence) {
         const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
         // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
         if (sampling_frequency_ % kUsedCarrierFrequency) {
@@ -109,6 +110,9 @@ namespace dpsk_mod {
         }
         const uint32_t kNumBitsInOneSymbol = log2(positionality_); // количество бит в одном символе
         vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);
+        if (is_presence == PresencePivotSymbol::WITHOUT_PIVOT) {
+            symbols.insert(symbols.begin(), 0); // добавление опорного символа за O(N)
+        }
         const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / kUsedCarrierFrequency; // количество отсчетов в одном модулированном символе
         vector<double> modulated_signal(kNumSpamlesInElementarySignal * symbols.size());
 
@@ -120,8 +124,8 @@ namespace dpsk_mod {
         return modulated_signal;
     }
 
-    vector<double> DPSKModulator::Modulation(const vector<bool>& bits, int positionality) {
+    vector<double> DPSKModulator::Modulation(const vector<bool>& bits, int positionality, PresencePivotSymbol is_presence) {
         SetPositionality(positionality);
-        return Modulation(bits);
+        return Modulation(bits, is_presence);
     }
 } // namespace dpsk_mod

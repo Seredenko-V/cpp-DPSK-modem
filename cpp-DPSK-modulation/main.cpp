@@ -49,28 +49,10 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
 //    }
 //    {
 //        dpsk_mod::DPSKModulator modulator;
-//        modulator.SetCarrierFrequency(1800u).SetSamplingFrequency(19200u).SetIntermediateFrequency(1200u).SetPositionality(2);
-//        vector<bool> bits{0,
-//                          0,
-//                          0,
-//                          0,
-//                          0,
-//                          1,
-//                          1,
-//                          0,
-//                          0,
-//                          0,
-//                          1,
-//                          0,
-//                          1,
-//                          1,
-//                          1,
-//                          0,
-//                          1,
-//                          0,
-//                          0};
+//        modulator.SetCarrierFrequency(1000u).SetSamplingFrequency(50'000u);
+//        vector<bool> bits{1,0,0,1,1,0,1};
 //        vector<double> mod_signal = modulator.Modulation(bits);
-//        ofstream fout("mod_imitator.txt"s);
+//        ofstream fout("test.txt"s);
 //        fout << mod_signal;
 //    }
 //    {

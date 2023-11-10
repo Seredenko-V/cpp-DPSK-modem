@@ -84,8 +84,8 @@ namespace dpsk_demod {
 
     void DPSKDemodulator::FillSymbolsBounds() {
         const double kStepPhase = 2 * M_PI / positionality_;
-        bounds_symbols_.resize(positionality_, kStepPhase / 2);
-        // значение bounds_symbols_[0] уже задано верно
+        bounds_symbols_.resize(positionality_);
+        bounds_symbols_[0] = kStepPhase / 2; // отступ от позиции сивола на окружности
         for (uint16_t i = 1; i < positionality_; ++i) {
             bounds_symbols_[i] = bounds_symbols_[i - 1] + kStepPhase;
         }
@@ -103,14 +103,15 @@ namespace dpsk_demod {
         }
     }
 
-    const vector<uint16_t>& DPSKDemodulator::GetSymbolsSequenceOnCircle() const noexcept {
+    const vector<uint32_t>& DPSKDemodulator::GetSymbolsSequenceOnCircle() const noexcept {
         return symbols_sequence_on_circle_;
     }
 
-    uint16_t DPSKDemodulator::DefineSymbol(double phase_difference) const noexcept {
+    uint32_t DPSKDemodulator::DefineSymbol(double phase_difference) const noexcept {
         math::PhaseToRangeFrom0To2PI(phase_difference);
         assert(!bounds_symbols_.empty());
-        // lower_bound вернет итератор, чтобы получить индекс - нужно использовать distance, что сделает сложность O(N*N*log2(N))
+        // lower_bound вернет итератор, чтобы получить индекс для обращения к вектору символов нужно использовать distance.
+        // Это сделает сложность O(N*N*log2(N)). Сейчас просто O(N)
         for (size_t i = 0; i < bounds_symbols_.size() - 1; ++i) {
             // принадлежность интервалу [bounds_symbols_[i], bounds_symbols_[i + 1])
             if (!less<double>()(phase_difference, bounds_symbols_[i]) && less<double>()(phase_difference, bounds_symbols_[i + 1])) {
@@ -120,22 +121,22 @@ namespace dpsk_demod {
         return symbols_sequence_on_circle_.front(); // последний интервал значений
     }
 
-    vector<uint16_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
+    vector<uint32_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
         // потом добавить проверку на кратность частот
         const uint32_t kNumSamplesPerSymbol = sampling_frequency_ / carrier_frequency_;
         // добавить проверку количества отсчетов на кратность kNumSamplesPerSymbol
-        vector<uint16_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol);
+        vector<uint32_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol - 1);
 
         for (size_t i = 0; i < samples.size() - kNumSamplesPerSymbol; i += kNumSamplesPerSymbol) {
             vector<double>::const_iterator first_symbol_begin_it = samples.begin() + i;
             vector<double>::const_iterator first_symbol_end_it = samples.begin() + i + kNumSamplesPerSymbol;
-            complex<double> symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(first_symbol_begin_it, first_symbol_end_it);
+            complex<double> first_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(first_symbol_begin_it, first_symbol_end_it);
 
             vector<double>::const_iterator second_symbol_begin_it = samples.begin() + i + kNumSamplesPerSymbol;
             vector<double>::const_iterator second_symbol_end_it = samples.begin() + i + 2 * kNumSamplesPerSymbol;
             complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
 
-            double phase_defference = ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(symbol_IQ_components);
+            double phase_defference = ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(first_symbol_IQ_components);
             math::PhaseToRangeFrom0To2PI(phase_defference);
             demodulated_symbols[i / kNumSamplesPerSymbol] = DefineSymbol(phase_defference);
         }
