@@ -108,10 +108,7 @@ namespace dpsk_demod {
     }
 
     uint16_t DPSKDemodulator::DefineSymbol(double phase_difference) const noexcept {
-        // чтобы фаза была в пределах [0, 2*PI)
-        while (phase_difference >= 2 * M_PI) {
-            phase_difference -= 2 * M_PI;
-        }
+        math::PhaseToRangeFrom0To2PI(phase_difference);
         assert(!bounds_symbols_.empty());
         // lower_bound вернет итератор, чтобы получить индекс - нужно использовать distance, что сделает сложность O(N*N*log2(N))
         for (size_t i = 0; i < bounds_symbols_.size() - 1; ++i) {
@@ -123,7 +120,6 @@ namespace dpsk_demod {
         return symbols_sequence_on_circle_.front(); // последний интервал значений
     }
 
-
     vector<uint16_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
         // потом добавить проверку на кратность частот
         const uint32_t kNumSamplesPerSymbol = sampling_frequency_ / carrier_frequency_;
@@ -131,7 +127,6 @@ namespace dpsk_demod {
         vector<uint16_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol);
 
         for (size_t i = 0; i < samples.size() - kNumSamplesPerSymbol; i += kNumSamplesPerSymbol) {
-            // нужна разность фаз
             vector<double>::const_iterator first_symbol_begin_it = samples.begin() + i;
             vector<double>::const_iterator first_symbol_end_it = samples.begin() + i + kNumSamplesPerSymbol;
             complex<double> symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(first_symbol_begin_it, first_symbol_end_it);
@@ -139,12 +134,10 @@ namespace dpsk_demod {
             vector<double>::const_iterator second_symbol_begin_it = samples.begin() + i + kNumSamplesPerSymbol;
             vector<double>::const_iterator second_symbol_end_it = samples.begin() + i + 2 * kNumSamplesPerSymbol;
             complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
-            double phase_defference = ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(symbol_IQ_components);
-            if (phase_defference < 0) {
 
-            }
-            cout << phase_defference << endl;
-            demodulated_symbols[i] = DefineSymbol(phase_defference);
+            double phase_defference = ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(symbol_IQ_components);
+            math::PhaseToRangeFrom0To2PI(phase_defference);
+            demodulated_symbols[i / kNumSamplesPerSymbol] = DefineSymbol(phase_defference);
         }
         return demodulated_symbols;
     }
