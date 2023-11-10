@@ -5,6 +5,10 @@
 #include <cassert>
 #include <functional>
 
+
+// для отладки
+#include <iostream>
+
 using namespace std;
 
 namespace dpsk_demod {
@@ -56,7 +60,9 @@ namespace dpsk_demod {
     }
 
     double DPSKDemodulator::ExtractPhaseValue(complex<double> inphase_quadrature_components) const {
-        return atan2(inphase_quadrature_components.imag(), inphase_quadrature_components.real());
+        double phase_value = atan2(inphase_quadrature_components.imag(), inphase_quadrature_components.real());
+        math::PhaseToRangeFrom0To2PI(phase_value);
+        return phase_value;
     }
 
     void DPSKDemodulator::FillCosAndSinOscillation() {
@@ -133,8 +139,12 @@ namespace dpsk_demod {
             vector<double>::const_iterator second_symbol_begin_it = samples.begin() + i + kNumSamplesPerSymbol;
             vector<double>::const_iterator second_symbol_end_it = samples.begin() + i + 2 * kNumSamplesPerSymbol;
             complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
+            double phase_defference = ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(symbol_IQ_components);
+            if (phase_defference < 0) {
 
-            demodulated_symbols[i] = DefineSymbol(ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(symbol_IQ_components));
+            }
+            cout << phase_defference << endl;
+            demodulated_symbols[i] = DefineSymbol(phase_defference);
         }
         return demodulated_symbols;
     }

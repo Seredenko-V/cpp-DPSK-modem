@@ -39,6 +39,9 @@ namespace math {
     /// Перевод углов в радианы. Сложность: O(1)
     double DegreesToRadians(double angle_degree);
 
+    /// Перенести значение фазы в пределы [0, 2 * M_PI). Сложность: O(phase / (2 * M_PI))
+    void PhaseToRangeFrom0To2PI(double& phase);
+
     namespace tests {
         void TestIsPowerOfTwo();
         void TestExtractNumBitsFormValue();
@@ -46,6 +49,7 @@ namespace math {
         void TestConvertationBitsToDecValues();
         void TestIsSameDouble();
         void TestDegreesToRadians();
+        void TestPhaseToRangeFrom0To2PI();
         void RunAllTests();
     } // namespace tests
 } // namespace math

@@ -72,10 +72,7 @@ namespace dpsk_mod {
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
-            // чтобы фаза была в пределах [0, 2*PI)
-            while (phase_ >= 2 * M_PI) {
-                phase_ -= 2 * M_PI;
-            }
+            math::PhaseToRangeFrom0To2PI(phase_);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
 //                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * mod_function_(kCyclicFrequencyCoefficient * sample_id + phase_);
                 // минус phase_ т.к. вращение по окружности против часовой стрелки (сложение на окружности). Плюс - вращение по часовой (вычитание на окружности)
@@ -91,10 +88,7 @@ namespace dpsk_mod {
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
             phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
-            // чтобы фаза была в пределах [0, 2*PI)
-            while (phase_ >= 2 * M_PI) {
-                phase_ -= 2 * M_PI;
-            }
+            math::PhaseToRangeFrom0To2PI(phase_);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
                 size_t time_difference_step = sample_id + symbol_id * num_samples_in_symbol;
                 // минус phase_ т.к. вращение по окружности против часовой стрелки (сложение на окружности). Плюс - вращение по часовой (вычитание на окружности)

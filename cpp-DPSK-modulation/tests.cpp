@@ -136,6 +136,27 @@ namespace math {
             cerr << "math::TestDegreesToRadians has passed"s << endl;
         }
 
+        void TestPhaseToRangeFrom0To2PI() {
+            { // прибавление 2 * M_PI
+                double phase = -M_PI / 2;
+                PhaseToRangeFrom0To2PI(phase);
+                assert(IsSameDouble(phase, 3 * M_PI / 2));
+            }{ // вычитание 2 * M_PI
+                double phase = 8 * M_PI / 2;
+                PhaseToRangeFrom0To2PI(phase);
+                assert(IsSameDouble(phase, 0));
+            }{ // без изменений
+                double phase = M_PI;
+                PhaseToRangeFrom0To2PI(phase);
+                assert(IsSameDouble(phase, M_PI));
+            }{ // без изменений
+                double phase = 0;
+                PhaseToRangeFrom0To2PI(phase);
+                assert(IsSameDouble(phase, 0));
+            }
+            cerr << "math::TestPhaseToRangeFrom0To2PI has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
@@ -143,6 +164,7 @@ namespace math {
             TestConvertationBitsToDecValues();
             TestIsSameDouble();
             TestDegreesToRadians();
+            TestPhaseToRangeFrom0To2PI();
             cerr << "math::AllTests has passed"s << endl;
         }
     } // namespace tests
@@ -560,12 +582,12 @@ namespace dpsk_demod {
             assert(IsSameDouble(demodulator.ExtractPhaseValue({0.5, 0}), 0));
             assert(IsSameDouble(demodulator.ExtractPhaseValue({-0.5, 0}), M_PI));
             assert(IsSameDouble(demodulator.ExtractPhaseValue({0, 0.5}), M_PI / 2));
-            assert(IsSameDouble(demodulator.ExtractPhaseValue({0, -0.5}), -M_PI / 2));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({0, -0.5}), -M_PI / 2 + 2 * M_PI));
             // ОФМ-8
             assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(M_PI / 4) / 2, sin(M_PI / 4) / 2}), M_PI / 4));
             assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(3 * M_PI / 4) / 2, sin(3 * M_PI / 4) / 2}), 3 * M_PI / 4));
-            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(-3 * M_PI / 4) / 2, sin(-3 * M_PI / 4) / 2}), -3 * M_PI / 4));
-            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(-M_PI / 4) / 2, sin(-M_PI / 4) / 2}), -M_PI / 4));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(-3 * M_PI / 4) / 2, sin(-3 * M_PI / 4) / 2}), -3 * M_PI / 4 + 2 * M_PI));
+            assert(IsSameDouble(demodulator.ExtractPhaseValue({cos(-M_PI / 4) / 2, sin(-M_PI / 4) / 2}), -M_PI / 4 + 2 * M_PI));
             cerr << "dpsk_demod::TestExtractPhaseValue has passed"s << endl;
         }
 

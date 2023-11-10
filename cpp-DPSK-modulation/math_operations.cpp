@@ -76,4 +76,13 @@ namespace math {
     double DegreesToRadians(double angle_degree) {
         return angle_degree * M_PI / 180;
     }
+
+    void PhaseToRangeFrom0To2PI(double& phase) {
+        while (phase >= 2 * M_PI) {
+            phase -= 2 * M_PI;
+        }
+        while (phase < 0) {
+            phase += 2 * M_PI;
+        }
+    }
 } // namespace math
