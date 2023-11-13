@@ -183,7 +183,7 @@ namespace math {
             TestDegreesToRadians();
             TestPhaseToRangeFrom0To2PI();
             TestFindNearestMultiple();
-            cerr << "math::AllTests has passed"s << endl;
+            cerr << ">>> math::AllTests has passed <<<"s << endl;
         }
     } // namespace tests
 } // namespace math
@@ -382,9 +382,9 @@ namespace dpsk_mod {
                 CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
                 modulator.SetPositionality(4);
-                vector<bool> bits{1,0,1,0,0,1,1};
+                vector<bool> bits{1, 0,1, 0,0, 1,1};
                 vector<double> real_mod_signal = modulator.Modulation(bits);
-                assert(real_mod_signal.size() == 4 * kSamplingFrequency / kCarrierFrequency);
+                assert(real_mod_signal.size() == 5 * kSamplingFrequency / kCarrierFrequency);
             }{
                 const string kNameFile = "pos4.txt"s;
                 modulator.SetPositionality(4).SetPhase(0);
@@ -485,12 +485,10 @@ namespace dpsk_mod {
             TestDefaultConstructor();
             TestSetPositionality();
             TestSetPhaseShift();
-
-
-//            TestClassicalModulation();
-//            TestModulationWithUseIntermediateFreq();
-//            TestConstellationShift();
-            cerr << "dpsk_mod::AllTests has passed"s << endl;
+            TestClassicalModulation();
+            TestModulationWithUseIntermediateFreq();
+            TestConstellationShift();
+            cerr << ">>> dpsk_mod::AllTests has passed <<<"s << endl;
         }
     } // namespace tests
 } // namespace dpsk_mod
@@ -802,7 +800,7 @@ namespace dpsk_demod {
             TestDemodulation();
             TestSetPhaseShift();
             TestDemodulationWithPhaseShift();
-            cerr << "dpsk_demod::AllTests has passed"s << endl;
+            cerr << ">>> dpsk_demod::AllTests has passed <<<"s << endl;
         }
     } // namespace tests
 } // namespace dpsk_demod
