@@ -12,7 +12,7 @@ namespace dpsk_demod {
         DPSKDemodulator(int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
-        DPSKDemodulator& SetPositionality(int positionality);
+        DPSKDemodulator& SetPositionality(int positionality) override;
 
         /// Извлечь синфазную и квадратурную составляющие символа (элементарного сиганала). Сложность: O(N)
         std::complex<double> ExtractInPhaseAndQuadratureComponentsSymbol(const std::vector<double>& one_symbol_samples) const;
@@ -21,7 +21,7 @@ namespace dpsk_demod {
         /// Извлечь значение фазы (угла) из синфазной и квадратурной составляющих элементарного сигнала. Сложность: O(1)
         double ExtractPhaseValue(std::complex<double> inphase_quadrature_components) const;
 
-        /// Демодуляция последовательности отсчетов. Сложность: O(???)
+        /// Демодуляция последовательности отсчетов. Сложность: O(N)
         std::vector<uint32_t> Demodulation(const std::vector<double>& samples);
 
 //    private:

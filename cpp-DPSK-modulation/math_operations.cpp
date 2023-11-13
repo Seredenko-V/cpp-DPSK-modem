@@ -85,4 +85,26 @@ namespace math {
             phase += 2 * M_PI;
         }
     }
+
+    uint32_t FindNearestMultiple(uint32_t value, uint32_t divisible, MultipleValue is_more) {
+        if (value == 0) {
+            return 0;
+        }
+        if (divisible % value == 0) {
+            return value;
+        }
+        int32_t int_part = divisible / value;
+        if (int_part == 0) {
+            throw invalid_argument("Rounding up is not possible"s);
+        }
+
+        if (is_more == MultipleValue::MORE) {
+            while (divisible % int_part && int_part > 0) {
+                --int_part;
+            }
+        } else {
+            while (divisible % ++int_part);
+        }
+        return divisible / int_part;
+    }
 } // namespace math

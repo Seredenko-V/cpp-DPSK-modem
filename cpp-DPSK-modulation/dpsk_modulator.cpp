@@ -109,20 +109,22 @@ namespace dpsk_mod {
 
     // Можно сделать в любом случае сложность O(N), путем написания перегрузки ConvertationBitsToDecValues, где будет добавляться опорный символ
     vector<double> DPSKModulator::Modulation(const vector<bool>& bits, PresencePivotSymbol is_presence) {
-        const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
+        using namespace math;
+        uint32_t used_carrier_frequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
         // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
-        if (sampling_frequency_ % kUsedCarrierFrequency) {
-            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
+        if (sampling_frequency_ % used_carrier_frequency) {
+            used_carrier_frequency = FindNearestMultiple(carrier_frequency_, sampling_frequency_, MultipleValue::LESS);
+//            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
         }
         const uint32_t kNumBitsInOneSymbol = log2(positionality_); // количество бит в одном символе
-        vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);
+        vector<uint32_t> symbols = ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);
         if (is_presence == PresencePivotSymbol::WITHOUT_PIVOT) {
             symbols.insert(symbols.begin(), 0); // добавление опорного символа за O(N)
         }
-        const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / kUsedCarrierFrequency; // количество отсчетов в одном модулированном символе
+        const uint16_t kNumSpamlesInElementarySignal = sampling_frequency_ / used_carrier_frequency; // количество отсчетов в одном модулированном символе
         vector<double> modulated_signal(kNumSpamlesInElementarySignal * symbols.size());
 
-        if (kUsedCarrierFrequency == carrier_frequency_) {
+        if (used_carrier_frequency == carrier_frequency_) {
             ClassicalModulation(symbols, modulated_signal, kNumSpamlesInElementarySignal);
         } else {
             ModulationWithUseIntermediateFreq(symbols, modulated_signal, kNumSpamlesInElementarySignal);

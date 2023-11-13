@@ -39,8 +39,17 @@ namespace math {
     /// Перевод углов в радианы. Сложность: O(1)
     double DegreesToRadians(double angle_degree);
 
-    /// Перенести значение фазы в пределы [0, 2 * M_PI). Сложность: O(phase / (2 * M_PI))
+    /// Перенос значение фазы в пределы [0, 2 * M_PI). Сложность: O(phase / (2 * M_PI))
     void PhaseToRangeFrom0To2PI(double& phase);
+
+    /// Кратное число должно быть больше или меньше некоторого value
+    enum class MultipleValue {
+        MORE,
+        LESS
+    };
+
+    /// Поиск ближайшего к value числа, которое делит без остатка multiple. Сложность: O(N)
+    uint32_t FindNearestMultiple(uint32_t value, uint32_t divisible, MultipleValue is_more = MultipleValue::MORE);
 
     namespace tests {
         void TestIsPowerOfTwo();
@@ -50,6 +59,7 @@ namespace math {
         void TestIsSameDouble();
         void TestDegreesToRadians();
         void TestPhaseToRangeFrom0To2PI();
+        void TestFindNearestMultiple();
         void RunAllTests();
     } // namespace tests
 } // namespace math

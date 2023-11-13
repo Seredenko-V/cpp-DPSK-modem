@@ -157,6 +157,23 @@ namespace math {
             cerr << "math::TestPhaseToRangeFrom0To2PI has passed"s << endl;
         }
 
+        void TestFindNearestMultiple() {
+            assert(FindNearestMultiple(1800, 19200, MultipleValue::MORE) == 1920);
+            assert(FindNearestMultiple(1800, 19200, MultipleValue::LESS) == 1600);
+            assert(FindNearestMultiple(15'000, 179'105, MultipleValue::MORE) == 35'821);
+            assert(FindNearestMultiple(15'000, 179'105, MultipleValue::LESS) == 1585);
+            assert(FindNearestMultiple(1900, 24'167, MultipleValue::MORE) == 2197);
+            assert(FindNearestMultiple(1900, 24'167, MultipleValue::LESS) == 1859);
+            assert(FindNearestMultiple(42, 100, MultipleValue::MORE) == 50);
+            assert(FindNearestMultiple(99, 100, MultipleValue::LESS) == 50);
+            assert(FindNearestMultiple(100, 100, MultipleValue::MORE) == 100);
+            try {
+                FindNearestMultiple(101, 100, MultipleValue::MORE);
+                assert(false);
+            } catch (const invalid_argument& /* except */) {}
+            cerr << "math::TestFindNearestMultiple has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
@@ -165,6 +182,7 @@ namespace math {
             TestIsSameDouble();
             TestDegreesToRadians();
             TestPhaseToRangeFrom0To2PI();
+            TestFindNearestMultiple();
             cerr << "math::AllTests has passed"s << endl;
         }
     } // namespace tests

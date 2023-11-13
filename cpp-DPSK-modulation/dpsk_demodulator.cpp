@@ -148,6 +148,4 @@ namespace dpsk_demod {
         }
         return demodulated_symbols;
     }
-    // <================================= Demodulation ===================================
-
 } // namespace dpsk_demod
