@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <cstdint>
+#include <mutex>
+#include <memory>
 
 namespace gray_code {
     /// Сгенерировать num_codes кодов Грея. num_codes должно быть степенью двойки. Сложность O(N * log2(N))
