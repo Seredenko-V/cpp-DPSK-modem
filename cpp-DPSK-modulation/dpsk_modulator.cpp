@@ -112,9 +112,8 @@ namespace dpsk_mod {
         using namespace math;
         uint32_t used_carrier_frequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
         // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
-        if (sampling_frequency_ % used_carrier_frequency) {
+        if (sampling_frequency_ % used_carrier_frequency || used_carrier_frequency == 0) {
             used_carrier_frequency = FindNearestMultiple(carrier_frequency_, sampling_frequency_, MultipleValue::LESS);
-//            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
         }
         const uint32_t kNumBitsInOneSymbol = log2(positionality_); // количество бит в одном символе
         vector<uint32_t> symbols = ConvertationBitsToDecValues(bits, kNumBitsInOneSymbol);

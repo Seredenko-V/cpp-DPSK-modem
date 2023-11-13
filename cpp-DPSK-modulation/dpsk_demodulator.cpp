@@ -128,9 +128,17 @@ namespace dpsk_demod {
     }
 
     vector<uint32_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
-        // потом добавить проверку на кратность частот
-        const uint32_t kNumSamplesPerSymbol = sampling_frequency_ / carrier_frequency_;
-        // добавить проверку количества отсчетов на кратность kNumSamplesPerSymbol
+        uint32_t used_carrier_frequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
+        // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
+        if (sampling_frequency_ % used_carrier_frequency || used_carrier_frequency == 0) {
+            used_carrier_frequency = FindNearestMultiple(carrier_frequency_, sampling_frequency_, math::MultipleValue::LESS);
+        }
+        const uint32_t kNumSamplesPerSymbol = sampling_frequency_ / used_carrier_frequency;
+
+        // "хвосты" должны буферизоваться в синхронизаторе
+        if (samples.size() % kNumSamplesPerSymbol) {
+            throw invalid_argument("Samples number is not multiple number of samples per symbol"s);
+        }
         vector<uint32_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol - 1);
 
         for (size_t i = 0; i < samples.size() - kNumSamplesPerSymbol; i += kNumSamplesPerSymbol) {
