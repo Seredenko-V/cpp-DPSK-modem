@@ -374,7 +374,7 @@ namespace dpsk_mod {
             DPSKModulator modulator;
             constexpr uint32_t kCarrierFrequency = 1200u;
             constexpr uint32_t kSamplingFrequency = 19'200u;
-            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
             {
                 const string kNameFile = "pos2.txt"s;
                 modulator.SetPositionality(2).SetPhase(0);
@@ -406,7 +406,7 @@ namespace dpsk_mod {
             constexpr uint32_t kCarrierFrequency = 1800u;
             constexpr uint32_t kIntermediateFrequency = 1200u;
             constexpr uint32_t kSamplingFrequency = 19'200u;
-            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency).SetIntermediateFrequency(kIntermediateFrequency);
+            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kIntermediateFrequency);
             {
                 const string kNameFile = "pos2_intermediate.txt"s;
                 modulator.SetPositionality(2).SetPhase(0);
@@ -438,7 +438,7 @@ namespace dpsk_mod {
             constexpr uint32_t kIntermediateFrequency = 1200u;
             constexpr uint32_t kSamplingFrequency = 19'200u;
             // без использования промежуточной частоты
-            modulator.SetCarrierFrequency(kIntermediateFrequency).SetSamplingFrequency(kSamplingFrequency);
+            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kIntermediateFrequency);
             {
                 const string kNameFile = "pos2_shift_90.txt"s;
                 modulator.SetPositionality(2).SetPhase(90);
@@ -503,9 +503,9 @@ namespace dpsk_demod {
             static constexpr uint32_t kSamplingFrequency = 50'000u;
             static constexpr uint32_t kCarrierFrequency = 1'000u;
             dpsk_mod::DPSKModulator modulator;
-            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
             DPSKDemodulator demodulator;
-            demodulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            demodulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
             demodulator.FillCosAndSinOscillation();
             modulator.SetModulationFunction(dpsk_mod::Sin);
             // ОФМ-2 без сдвига созвездия
@@ -620,7 +620,7 @@ namespace dpsk_demod {
         void TestExtractPhaseValue() {
             using namespace math;
             DPSKDemodulator demodulator;
-            demodulator.SetCarrierFrequency(1000u).SetSamplingFrequency(50'000u);
+            demodulator.SetSamplingFrequency(50'000u).SetCarrierFrequency(1000u);
             demodulator.FillCosAndSinOscillation();
             // ОФМ-4
             assert(IsSameDouble(demodulator.ExtractPhaseValue({0.5, 0}), 0));
@@ -695,9 +695,9 @@ namespace dpsk_demod {
 
         void TestDemodulation() {
             dpsk_mod::DPSKModulator modulator;
-            modulator.SetCarrierFrequency(1000u).SetSamplingFrequency(50'000u);
+            modulator.SetSamplingFrequency(50'000u).SetCarrierFrequency(1000u);
             DPSKDemodulator demodulator;
-            demodulator.SetCarrierFrequency(1000u).SetSamplingFrequency(50'000u);
+            demodulator.SetSamplingFrequency(50'000u).SetCarrierFrequency(1000u);
             demodulator.FillCosAndSinOscillation();
             { // ОФМ-2 без сдвига созвездия
                 vector<bool> bits{0,1,1,1,0,1};
@@ -767,9 +767,9 @@ namespace dpsk_demod {
             static constexpr uint32_t kSamplingFrequency = 50'000u;
             static constexpr uint32_t kCarrierFrequency = 1'000u;
             dpsk_mod::DPSKModulator modulator;
-            modulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
             DPSKDemodulator demodulator;
-            demodulator.SetCarrierFrequency(kCarrierFrequency).SetSamplingFrequency(kSamplingFrequency);
+            demodulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
             demodulator.FillCosAndSinOscillation();
             { // ОФМ-2
                 modulator.SetPhaseShift(M_PI / 2);
