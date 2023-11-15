@@ -144,7 +144,6 @@ namespace dpsk_demod {
     void DPSKDemodulator::CreateDecorrelationMatrix() {
         vector<const vector<double>*> IQ_components{&cos_oscillation_, &sin_oscillation_};
         decorrelation_matrix_ = Matrix<double>(IQ_components.size(), IQ_components.size());
-//        decorrelation_matrix_.resize(IQ_components.size(), vector<double>(IQ_components.size()));
 
         for (size_t str = 0; str < IQ_components.size(); ++str) {
             for (size_t col = 0; col < IQ_components.size(); ++col) {
@@ -152,10 +151,10 @@ namespace dpsk_demod {
                 for (size_t i = 0; i < cos_oscillation_.size(); ++i) {
                     value += IQ_components[str]->at(i) * IQ_components[col]->at(i);
                 }
-//                decorrelation_matrix_[str][col] = value * 2 / cos_oscillation_.size();
                 decorrelation_matrix_.put(str, col, value * 2 / cos_oscillation_.size());
             }
         }
+        decorrelation_matrix_.invert();
     }
 
     const Matrix<double>& DPSKDemodulator::GetDecorrelationMatrix() const noexcept {
