@@ -93,3 +93,15 @@ SignalParameters& SignalParameters::SetPhaseShift(double phase_shift) {
 double SignalParameters::GetPhaseShift() const noexcept {
     return phase_shift_;
 }
+
+SignalParameters& SignalParameters::SetSymbolSpeed(int new_symbol_speed) {
+    if (new_symbol_speed <= 0) {
+        throw invalid_argument("Value "s + to_string(new_symbol_speed) + " of symbol speed isn't positive"s);
+    }
+    symbol_speed_ = new_symbol_speed;
+    return *this;
+}
+
+uint32_t SignalParameters::GetSymbolSpeed() const noexcept {
+    return symbol_speed_;
+}

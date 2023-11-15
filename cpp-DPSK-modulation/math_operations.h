@@ -4,6 +4,9 @@
 #include <vector>
 
 namespace math {
+    template <typename Type>
+    using Matrix = std::vector<std::vector<Type>>;
+
     /// Является ли число степенью двойки: N^2 = value. Сложность: O(1)
     bool IsPowerOfTwo(int value) noexcept;
 

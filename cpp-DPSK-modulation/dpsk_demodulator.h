@@ -1,5 +1,7 @@
 #pragma once
 #include "signal_parameters.h"
+#include "math_operations.h"
+#include "matrix.h"
 
 #include <cstdint>
 #include <vector>
@@ -13,6 +15,9 @@ namespace dpsk_demod {
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
         DPSKDemodulator& SetPositionality(int positionality) override;
+
+        /// Установить значение несущей частоты. Сложность: O(???)
+        DPSKDemodulator& SetCarrierFrequency(int carrier_frequency) override;
 
         /// Извлечь синфазную и квадратурную составляющие символа (элементарного сиганала). Сложность: O(N)
         std::complex<double> ExtractInPhaseAndQuadratureComponentsSymbol(const std::vector<double>& one_symbol_samples) const;
@@ -40,6 +45,9 @@ namespace dpsk_demod {
         /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(positionality)
         DPSKDemodulator& SetPhaseShift(double phase_shift) override;
 
+        /// Получить матрицу декорреляции
+        const Matrix<double>& GetDecorrelationMatrix() const noexcept;
+
     private:
         /// Заполнить границы (сектора) символов на огружности. Сложность: O(positionality)
         void FillSymbolsBounds();
@@ -47,12 +55,16 @@ namespace dpsk_demod {
         /// Заполнить последовательность символов на окружности от 0 до 2*PI в соответсвии с кодом Грея. Сложность: O(2 * positionality * log2(positionality))
         void FillSymbolsSequenceOnCircle();
 
+        /// Построить матрицу декореляции для минимизации паразитного отклика I и Q компонент
+        void CreateDecorrelationMatrix();
+
     private:
         // один период косинуса и синуса
         std::vector<double> cos_oscillation_;
         std::vector<double> sin_oscillation_;
         std::vector<double> bounds_symbols_; // границы диапазонов разностей фаз между символами
         std::vector<uint32_t> symbols_sequence_on_circle_; // полследовательность символов на окружности в соответствии с кодом Грея
+        Matrix<double> decorrelation_matrix_;
     };
 
     namespace tests {
@@ -64,6 +76,7 @@ namespace dpsk_demod {
         void TestDemodulation();
         void TestSetPhaseShift();
         void TestDemodulationWithPhaseShift();
+        void TestCreateDecorrelationMatrix();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod

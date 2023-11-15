@@ -24,7 +24,7 @@ public:
     double GetPhase() const noexcept;
 
     /// Установить значение несущей частоты. Сложность: O(1)
-    SignalParameters& SetCarrierFrequency(int carrier_frequency);
+    virtual SignalParameters& SetCarrierFrequency(int carrier_frequency);
 
     /// Получить значение несущей частоты. Сложность: O(1)
     uint32_t GetCarrierFrequency() const noexcept;
@@ -47,6 +47,12 @@ public:
     /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(1)
     double GetPhaseShift() const noexcept;
 
+    /// Установить значение символьной скорости (кол-во символов / секунда). Сложность: O(1)
+    virtual SignalParameters& SetSymbolSpeed(int new_symbol_speed);
+
+    /// Получить значение символьной скорости. Сложность: O(1)
+    uint32_t GetSymbolSpeed() const noexcept;
+
 protected:
     uint16_t positionality_ = 0u; // позиционность
     double amplitude_ = 1.; // амплитуда колебания, В
@@ -61,4 +67,6 @@ protected:
 
     uint32_t intermediate_frequency_ = 0u; // промежуточная частота, Гц
     double intermediate_cyclic_frequency_ = 0.; // циклическая промежуточная частота, радианы
+
+    uint32_t symbol_speed_ = 0u; // символьная скорость
 };

@@ -13,5 +13,5 @@ set(SIGNAL_PARAMS signal_parameters.h signal_parameters.cpp)
 set(DPSK_MODULATION dpsk_modulator.h dpsk_modulator.cpp)
 set(DPSK_DEMODULATOR dpsk_demodulator.h dpsk_demodulator.cpp)
 
-add_executable(cpp-DPSK-modulation main.cpp ${GRAY_CODE} ${SIGNAL_PARAMS} ${DPSK_MODULATION} ${DPSK_DEMODULATOR} ${MATH_OPERATIONS} tests.cpp)
+add_executable(cpp-DPSK-modulation main.cpp ${GRAY_CODE} ${SIGNAL_PARAMS} ${DPSK_MODULATION} ${DPSK_DEMODULATOR} ${MATH_OPERATIONS} matrix.h tests.cpp)
 

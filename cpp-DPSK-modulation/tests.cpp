@@ -505,8 +505,7 @@ namespace dpsk_demod {
             dpsk_mod::DPSKModulator modulator;
             modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
             DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
-            demodulator.FillCosAndSinOscillation();
+            demodulator.SetSamplingFrequency(kSamplingFrequency).SetSymbolSpeed(kCarrierFrequency).SetCarrierFrequency(kCarrierFrequency);
             modulator.SetModulationFunction(dpsk_mod::Sin);
             // ОФМ-2 без сдвига созвездия
             {
@@ -620,8 +619,7 @@ namespace dpsk_demod {
         void TestExtractPhaseValue() {
             using namespace math;
             DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(50'000u).SetCarrierFrequency(1000u);
-            demodulator.FillCosAndSinOscillation();
+            demodulator.SetSamplingFrequency(50'000u).SetSymbolSpeed(1000u).SetCarrierFrequency(1000u);
             // ОФМ-4
             assert(IsSameDouble(demodulator.ExtractPhaseValue({0.5, 0}), 0));
             assert(IsSameDouble(demodulator.ExtractPhaseValue({-0.5, 0}), M_PI));
@@ -697,8 +695,7 @@ namespace dpsk_demod {
             dpsk_mod::DPSKModulator modulator;
             modulator.SetSamplingFrequency(50'000u).SetCarrierFrequency(1000u);
             DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(50'000u).SetCarrierFrequency(1000u);
-            demodulator.FillCosAndSinOscillation();
+            demodulator.SetSamplingFrequency(50'000u).SetSymbolSpeed(1000u).SetCarrierFrequency(1000u);
             { // ОФМ-2 без сдвига созвездия
                 vector<bool> bits{0,1,1,1,0,1};
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 1);
@@ -769,8 +766,7 @@ namespace dpsk_demod {
             dpsk_mod::DPSKModulator modulator;
             modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
             DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
-            demodulator.FillCosAndSinOscillation();
+            demodulator.SetSamplingFrequency(kSamplingFrequency).SetSymbolSpeed(kCarrierFrequency).SetCarrierFrequency(kCarrierFrequency);
             { // ОФМ-2
                 modulator.SetPhaseShift(M_PI / 2);
                 demodulator.SetPhaseShift(M_PI / 2);
@@ -791,6 +787,15 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestDemodulationWithPhaseShift has passed"s << endl;
         }
 
+        void TestCreateDecorrelationMatrix() {
+            static constexpr uint32_t kSamplingFrequency = 50'000u;
+            static constexpr uint32_t kCarrierFrequency = 1'000u;
+            DPSKDemodulator demodulator;
+            demodulator.SetSamplingFrequency(kSamplingFrequency).SetSymbolSpeed(kCarrierFrequency).SetCarrierFrequency(kCarrierFrequency);
+
+            cerr << "dpsk_demod::TestCreateDecorrelationMatrix has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
             TestExtractPhaseValue();
@@ -800,6 +805,7 @@ namespace dpsk_demod {
             TestDemodulation();
             TestSetPhaseShift();
             TestDemodulationWithPhaseShift();
+            TestCreateDecorrelationMatrix();
             cerr << ">>> dpsk_demod::AllTests has passed <<<"s << endl;
         }
     } // namespace tests

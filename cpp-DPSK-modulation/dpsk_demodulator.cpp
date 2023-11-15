@@ -8,6 +8,7 @@
 
 // для отладки
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -20,6 +21,15 @@ namespace dpsk_demod {
         SignalParameters::SetPositionality(positionality);
         FillSymbolsBounds();
         FillSymbolsSequenceOnCircle();
+        return *this;
+    }
+
+    DPSKDemodulator& DPSKDemodulator::SetCarrierFrequency(int carrier_frequency) {
+        SignalParameters::SetCarrierFrequency(carrier_frequency);
+        FillCosAndSinOscillation();
+        if (sampling_frequency_ % carrier_frequency_) {
+            CreateDecorrelationMatrix();
+        }
         return *this;
     }
 
@@ -66,19 +76,23 @@ namespace dpsk_demod {
     }
 
     void DPSKDemodulator::FillCosAndSinOscillation() {
-        const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
+//        const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
         // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
-        if (sampling_frequency_ % kUsedCarrierFrequency) {
-            throw invalid_argument("The sampling frequency must be a multiple of the carrier frequency so that there is an integer number of samples in one period."s);
+        if (sampling_frequency_ % symbol_speed_) {
+            throw invalid_argument("The sampling frequency must be a multiple of the symbol speed so that there is an integer number of samples in one period."s);
         }
-        const uint16_t kNumSamplesInSymbol = sampling_frequency_ / kUsedCarrierFrequency;
+        const uint16_t kNumSamplesInSymbol = sampling_frequency_ / symbol_speed_;
         cos_oscillation_.resize(kNumSamplesInSymbol);
         sin_oscillation_.resize(kNumSamplesInSymbol);
 
-        const double kCyclicFrequencyCoefficient = 2 * M_PI * kUsedCarrierFrequency * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
+        const double kCyclicFrequencyCoefficient = 2 * M_PI * carrier_frequency_ * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
+//        ofstream only_cos("only_cos.txt"s);
+//        ofstream only_sin("only_sin.txt"s);
         for (uint16_t sample_id = 0; sample_id < kNumSamplesInSymbol; ++sample_id) {
             cos_oscillation_[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
+//            only_cos << cos_oscillation_[sample_id] << endl;
             sin_oscillation_[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
+//            only_sin << sin_oscillation_[sample_id] << endl;
         }
     }
 
@@ -125,6 +139,27 @@ namespace dpsk_demod {
         SignalParameters::SetPhaseShift(phase_shift);
         FillSymbolsBounds();
         return *this;
+    }
+
+    void DPSKDemodulator::CreateDecorrelationMatrix() {
+        vector<const vector<double>*> IQ_components{&cos_oscillation_, &sin_oscillation_};
+        decorrelation_matrix_ = Matrix<double>(IQ_components.size(), IQ_components.size());
+//        decorrelation_matrix_.resize(IQ_components.size(), vector<double>(IQ_components.size()));
+
+        for (size_t str = 0; str < IQ_components.size(); ++str) {
+            for (size_t col = 0; col < IQ_components.size(); ++col) {
+                double value = 0;
+                for (size_t i = 0; i < cos_oscillation_.size(); ++i) {
+                    value += IQ_components[str]->at(i) * IQ_components[col]->at(i);
+                }
+//                decorrelation_matrix_[str][col] = value * 2 / cos_oscillation_.size();
+                decorrelation_matrix_.put(str, col, value * 2 / cos_oscillation_.size());
+            }
+        }
+    }
+
+    const Matrix<double>& DPSKDemodulator::GetDecorrelationMatrix() const noexcept {
+        return decorrelation_matrix_;
     }
 
     vector<uint32_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {

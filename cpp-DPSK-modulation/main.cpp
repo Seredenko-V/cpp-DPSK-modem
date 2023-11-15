@@ -3,6 +3,8 @@
 #include "dpsk_modulator.h"
 #include "dpsk_demodulator.h"
 
+#include "matrix.h"
+
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -21,9 +23,9 @@ ostream& operator<<(ostream& out, const vector<Type>& vec) {
 }
 
 int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
-    math::tests::RunAllTests();
-    gray_code::tests::RunAllTests();
-    dpsk_mod::tests::RunAllTests();
+//    math::tests::RunAllTests();
+//    gray_code::tests::RunAllTests();
+//    dpsk_mod::tests::RunAllTests();
     dpsk_demod::tests::RunAllTests();
 
 //    {
@@ -65,5 +67,28 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
 //        ofstream fout("test_mod.txt"s);
 //        fout << mod_signal;
 //    }
+
+
+
+
+    dpsk_demod::DPSKDemodulator demodulator;
+    demodulator.SetSamplingFrequency(19200).SetSymbolSpeed(1200).SetIntermediateFrequency(1200).SetCarrierFrequency(1800);
+
+
+    const Matrix<double>& matrix = demodulator.GetDecorrelationMatrix();
+    cout << matrix << endl;
+    cout << endl;
+
+//    Matrix<double> matr(3,3);
+//    for (int i = 0; i < 3; ++i) {
+//        for (int j = 0; j < 3; ++j) {
+//            matr.put(i, j, j + i * 3);
+//        }
+//    }
+//    matr.put(0,0, 1);
+//    cout << matr << endl;
+//    matr.invert();
+//    cout << matr << endl;
+//    cout << matr.get(2,2) << endl;
     return 0;
 }
