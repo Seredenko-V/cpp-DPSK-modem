@@ -161,13 +161,19 @@ namespace dpsk_demod {
         return decorrelation_matrix_;
     }
 
+    std::complex<double> DPSKDemodulator::Decorrelation(std::complex<double> IQ_components) {
+        Matrix<double> components(2, 1);
+        components.put(0, 0, IQ_components.real());
+        components.put(1, 0, IQ_components.imag());
+        components = decorrelation_matrix_ * components;
+        return {components.get(0, 0), components.get(1, 0)};
+    }
+
     vector<uint32_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
-        uint32_t used_carrier_frequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
-        // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
-        if (sampling_frequency_ % used_carrier_frequency || used_carrier_frequency == 0) {
-            used_carrier_frequency = FindNearestMultiple(carrier_frequency_, sampling_frequency_, math::MultipleValue::LESS);
+        if (symbol_speed_ == 0 || sampling_frequency_ % symbol_speed_) {
+            throw runtime_error(to_string(symbol_speed_) + " isn't multiples to "s + to_string(sampling_frequency_));
         }
-        const uint32_t kNumSamplesPerSymbol = sampling_frequency_ / used_carrier_frequency;
+        const uint32_t kNumSamplesPerSymbol = sampling_frequency_ / symbol_speed_;
 
         // "хвосты" должны буферизоваться в синхронизаторе
         if (samples.size() % kNumSamplesPerSymbol) {
@@ -184,6 +190,10 @@ namespace dpsk_demod {
             vector<double>::const_iterator second_symbol_end_it = samples.begin() + i + 2 * kNumSamplesPerSymbol;
             complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
 
+            if (sampling_frequency_ % carrier_frequency_) {
+                first_symbol_IQ_components = Decorrelation(first_symbol_IQ_components);
+                second_symbol_IQ_components = Decorrelation(second_symbol_IQ_components);
+            }
             double phase_defference = ExtractPhaseValue(second_symbol_IQ_components) - ExtractPhaseValue(first_symbol_IQ_components);
             math::PhaseToRangeFrom0To2PI(phase_defference);
             demodulated_symbols[i / kNumSamplesPerSymbol] = DefineSymbol(phase_defference);

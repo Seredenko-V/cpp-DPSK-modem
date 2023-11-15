@@ -58,6 +58,9 @@ namespace dpsk_demod {
         /// Построить матрицу декореляции для минимизации паразитного отклика I и Q компонент
         void CreateDecorrelationMatrix();
 
+        /// Уменьшение влияния паразитного отклика I и Q компонент
+        std::complex<double> Decorrelation(std::complex<double> IQ_components);
+
     private:
         // один период косинуса и синуса
         std::vector<double> cos_oscillation_;

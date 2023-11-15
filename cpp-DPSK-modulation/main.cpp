@@ -78,17 +78,5 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
     const Matrix<double>& matrix = demodulator.GetDecorrelationMatrix();
     cout << matrix << endl;
     cout << endl;
-
-//    Matrix<double> matr(3,3);
-//    for (int i = 0; i < 3; ++i) {
-//        for (int j = 0; j < 3; ++j) {
-//            matr.put(i, j, j + i * 3);
-//        }
-//    }
-//    matr.put(0,0, 1);
-//    cout << matr << endl;
-//    matr.invert();
-//    cout << matr << endl;
-//    cout << matr.get(2,2) << endl;
     return 0;
 }
