@@ -121,4 +121,16 @@ namespace math {
         }
         return std::abs(second);
     }
+
+    uint32_t GetValueAfterPoint(double value) {
+        string digits_after_point = to_string(value);
+        size_t point_pos = digits_after_point.find('.');
+        size_t first_no_zero_digit = digits_after_point.find_first_not_of('0', point_pos + 1);
+        if (first_no_zero_digit == string::npos) {
+            return 0;
+        }
+        size_t last_no_zero_digit = digits_after_point.find_last_not_of('0');
+        digits_after_point = digits_after_point.substr(first_no_zero_digit, last_no_zero_digit - first_no_zero_digit + 1);
+        return stoi(digits_after_point);
+    }
 } // namespace math

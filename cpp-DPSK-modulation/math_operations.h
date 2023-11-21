@@ -57,6 +57,9 @@ namespace math {
     /// Наибольший общий делитель (НОД)
     uint32_t GetGCD(int first, int second) noexcept;
 
+    /// Извлечь дробную часть числа до 6 знака после запятой: 62.125 -> 125; 0.04 -> 4
+    uint32_t GetValueAfterPoint(double value);
+
     namespace tests {
         void TestIsPowerOfTwo();
         void TestExtractNumBitsFormValue();
@@ -67,6 +70,7 @@ namespace math {
         void TestPhaseToRangeFrom0To2PI();
         void TestFindNearestMultiple();
         void TestGetGCD();
+        void TestGetValueAfterPoint();
         void RunAllTests();
     } // namespace tests
 } // namespace math

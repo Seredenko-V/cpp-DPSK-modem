@@ -173,9 +173,6 @@ namespace dpsk_demod {
     }
 
     vector<uint32_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
-
-
-
         if (symbol_speed_ == 0 || sampling_frequency_ % symbol_speed_) {
             throw runtime_error(to_string(symbol_speed_) + " isn't multiples to "s + to_string(sampling_frequency_));
         }
