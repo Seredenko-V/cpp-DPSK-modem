@@ -76,6 +76,7 @@ namespace dpsk_demod {
     }
 
     void DPSKDemodulator::FillCosAndSinOscillation() {
+        static uint64_t time = 0;
 //        const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
         // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
         if (sampling_frequency_ % symbol_speed_) {
@@ -89,11 +90,13 @@ namespace dpsk_demod {
 //        ofstream only_cos("only_cos.txt"s);
 //        ofstream only_sin("only_sin.txt"s);
         for (uint16_t sample_id = 0; sample_id < kNumSamplesInSymbol; ++sample_id) {
-            cos_oscillation_[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
+            cos_oscillation_[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * time + phase_);
 //            only_cos << cos_oscillation_[sample_id] << endl;
-            sin_oscillation_[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
+            sin_oscillation_[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * time + phase_);
 //            only_sin << sin_oscillation_[sample_id] << endl;
+            ++time;
         }
+        time = time % (num_symbols_ * kNumSamplesInSymbol);
     }
 
     void DPSKDemodulator::FillSymbolsBounds() {
@@ -170,6 +173,9 @@ namespace dpsk_demod {
     }
 
     vector<uint32_t> DPSKDemodulator::Demodulation(const vector<double>& samples) {
+
+
+
         if (symbol_speed_ == 0 || sampling_frequency_ % symbol_speed_) {
             throw runtime_error(to_string(symbol_speed_) + " isn't multiples to "s + to_string(sampling_frequency_));
         }
@@ -182,19 +188,30 @@ namespace dpsk_demod {
         vector<uint32_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol - 1);
 
         for (size_t i = 0; i < samples.size() - kNumSamplesPerSymbol; i += kNumSamplesPerSymbol) {
+            if (sampling_frequency_ % carrier_frequency_) {
+                num_symbols_ = 2;
+                FillCosAndSinOscillation();
+            }
             vector<double>::const_iterator first_symbol_begin_it = samples.begin() + i;
             vector<double>::const_iterator first_symbol_end_it = samples.begin() + i + kNumSamplesPerSymbol;
             complex<double> first_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(first_symbol_begin_it, first_symbol_end_it);
+
+            if (sampling_frequency_ % carrier_frequency_) {
+                num_symbols_ = 2;
+                FillCosAndSinOscillation();
+            }
 
             vector<double>::const_iterator second_symbol_begin_it = samples.begin() + i + kNumSamplesPerSymbol;
             vector<double>::const_iterator second_symbol_end_it = samples.begin() + i + 2 * kNumSamplesPerSymbol;
             complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
 
             if (sampling_frequency_ % carrier_frequency_) {
-                const double kNumPeriodsPerSymbol = carrier_frequency_ / symbol_speed_; // количество периодов колебания за один символ
+//                const double kNumPeriodsPerSymbol = static_cast<double>(carrier_frequency_) / symbol_speed_; // количество периодов колебания за один символ
+//                string digits_after_point = to_string(kNumPeriodsPerSymbol);
+//                uint32_t point_pos = digits_after_point.find('.');
+//                digits_after_point = digits_after_point.substr(point_pos + 1);
+//                cout << digits_after_point << endl;
 
-
-                FillCosAndSinOscillation();
                 first_symbol_IQ_components = Decorrelation(first_symbol_IQ_components);
                 second_symbol_IQ_components = Decorrelation(second_symbol_IQ_components);
             }

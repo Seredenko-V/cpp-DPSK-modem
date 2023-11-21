@@ -68,6 +68,7 @@ namespace dpsk_demod {
         std::vector<double> bounds_symbols_; // границы диапазонов разностей фаз между символами
         std::vector<uint32_t> symbols_sequence_on_circle_; // полследовательность символов на окружности в соответствии с кодом Грея
         Matrix<double> decorrelation_matrix_;
+        uint32_t num_symbols_ = 1;
     };
 
     namespace tests {
