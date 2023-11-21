@@ -174,6 +174,14 @@ namespace math {
             cerr << "math::TestFindNearestMultiple has passed"s << endl;
         }
 
+        void TestGetGCD() {
+            assert(GetGCD(41, 7) == 1);
+            assert(GetGCD(0, 0) == 1);
+            assert(GetGCD(15, 5) == 5);
+            assert(GetGCD(12, 9) == 3);
+            cerr << "math::TestGetGCD has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
@@ -183,6 +191,7 @@ namespace math {
             TestDegreesToRadians();
             TestPhaseToRangeFrom0To2PI();
             TestFindNearestMultiple();
+            TestGetGCD();
             cerr << ">>> math::AllTests has passed <<<"s << endl;
         }
     } // namespace tests
@@ -799,6 +808,9 @@ namespace dpsk_demod {
                 vector<bool> bits{0,1,1,1,0,1};
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 1);
                 vector<double> mod_bits = modulator.Modulation(bits);
+                ofstream fout("test_mod.txt"s);
+                fout << mod_bits;
+                fout.close();
                 vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
                 cout << demod_bits << endl;
                 assert(symbols == demod_bits);

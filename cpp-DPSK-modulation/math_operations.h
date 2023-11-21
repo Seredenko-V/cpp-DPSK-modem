@@ -54,6 +54,9 @@ namespace math {
     /// Поиск ближайшего к value числа, которое делит без остатка multiple. Сложность: O(N)
     uint32_t FindNearestMultiple(uint32_t value, uint32_t divisible, MultipleValue is_more = MultipleValue::MORE);
 
+    /// Наибольший общий делитель (НОД)
+    uint32_t GetGCD(int first, int second) noexcept;
+
     namespace tests {
         void TestIsPowerOfTwo();
         void TestExtractNumBitsFormValue();
@@ -63,6 +66,7 @@ namespace math {
         void TestDegreesToRadians();
         void TestPhaseToRangeFrom0To2PI();
         void TestFindNearestMultiple();
+        void TestGetGCD();
         void RunAllTests();
     } // namespace tests
 } // namespace math

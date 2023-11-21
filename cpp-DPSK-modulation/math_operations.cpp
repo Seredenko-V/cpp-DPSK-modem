@@ -107,4 +107,18 @@ namespace math {
         }
         return divisible / int_part;
     }
+
+    uint32_t GetGCD(int first, int second) noexcept {
+        if (first == 0 || second == 0) {
+            return 1;
+        }
+        if (first < second) {
+            swap(first, second);
+        }
+        while (first % second != 0) {
+            first = first % second;
+            swap(first, second);
+        }
+        return std::abs(second);
+    }
 } // namespace math

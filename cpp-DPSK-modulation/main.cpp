@@ -9,6 +9,7 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -23,10 +24,10 @@ ostream& operator<<(ostream& out, const vector<Type>& vec) {
 }
 
 int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
-//    math::tests::RunAllTests();
+    math::tests::RunAllTests();
 //    gray_code::tests::RunAllTests();
 //    dpsk_mod::tests::RunAllTests();
-    dpsk_demod::tests::RunAllTests();
+//    dpsk_demod::tests::RunAllTests();
 
 //    {
 //        dpsk_mod::DPSKModulator modulator;
@@ -71,12 +72,14 @@ int main([[gnu::unused]] int argc, [[gnu::unused]] char *argv[]) {
 
 
 
-    dpsk_demod::DPSKDemodulator demodulator;
-    demodulator.SetSamplingFrequency(19200).SetSymbolSpeed(1200).SetIntermediateFrequency(1200).SetCarrierFrequency(1800);
+//    dpsk_demod::DPSKDemodulator demodulator;
+//    demodulator.SetSamplingFrequency(19200).SetSymbolSpeed(1200).SetIntermediateFrequency(1200).SetCarrierFrequency(1800);
 
 
-    const Matrix<double>& matrix = demodulator.GetDecorrelationMatrix();
-    cout << matrix << endl;
-    cout << endl;
+//    const Matrix<double>& matrix = demodulator.GetDecorrelationMatrix();
+//    cout << matrix << endl;
+//    cout << endl;
+
+
     return 0;
 }

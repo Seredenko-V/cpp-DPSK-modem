@@ -191,6 +191,10 @@ namespace dpsk_demod {
             complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
 
             if (sampling_frequency_ % carrier_frequency_) {
+                const double kNumPeriodsPerSymbol = carrier_frequency_ / symbol_speed_; // количество периодов колебания за один символ
+
+
+                FillCosAndSinOscillation();
                 first_symbol_IQ_components = Decorrelation(first_symbol_IQ_components);
                 second_symbol_IQ_components = Decorrelation(second_symbol_IQ_components);
             }
