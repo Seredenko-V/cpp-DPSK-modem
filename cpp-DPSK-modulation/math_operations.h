@@ -23,7 +23,7 @@ namespace math {
     std::vector<uint32_t> ConvertationBitsToDecValues(const std::vector<bool>& bits, int32_t num_bits_per_symbol);
 
     /// Сравнение двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
-    bool IsSameDouble(double lhs, double rhs, double delta = 1e-6);
+    bool IsSameDouble(double lhs, double rhs, double delta = 1e-6) noexcept;
 
     /// Сравнение двух контейнеров с double. Сложность: O(1)
     template <typename Container>
@@ -40,10 +40,10 @@ namespace math {
     }
 
     /// Перевод углов в радианы. Сложность: O(1)
-    double DegreesToRadians(double angle_degree);
+    double DegreesToRadians(double angle_degree) noexcept;
 
     /// Перенос значение фазы в пределы [0, 2 * M_PI). Сложность: O(phase / (2 * M_PI))
-    void PhaseToRangeFrom0To2PI(double& phase);
+    void PhaseToRangeFrom0To2PI(double& phase) noexcept;
 
     /// Кратное число должно быть больше или меньше некоторого value
     enum class MultipleValue {
@@ -54,11 +54,16 @@ namespace math {
     /// Поиск ближайшего к value числа, которое делит без остатка multiple. Сложность: O(N)
     uint32_t FindNearestMultiple(uint32_t value, uint32_t divisible, MultipleValue is_more = MultipleValue::MORE);
 
-    /// Наибольший общий делитель (НОД)
+    /// Наибольший общий делитель (НОД). Сложность: O(1)
     uint32_t GetGCD(int first, int second) noexcept;
 
-    /// Извлечь дробную часть числа до 6 знака после запятой: 62.125 -> 125; 0.04 -> 4
+    /// Извлечь дробную часть числа до 6 знака после запятой. Сложность: O(N)
+    /// 62.125 -> 125; 0.04 -> 4.
     uint32_t GetValueAfterPoint(double value);
+
+    /// Получить количество цифр после запятой. Используется для нахождения знаменателя дроби. Сложность: O(N)
+    /// 0.004 -> 3; 7.14125410 -> 8
+    uint32_t GetDigitsNumAfterPoint(double value);
 
     namespace tests {
         void TestIsPowerOfTwo();
@@ -71,6 +76,7 @@ namespace math {
         void TestFindNearestMultiple();
         void TestGetGCD();
         void TestGetValueAfterPoint();
+        void TestGetDigitsNumAfterPoint();
         void RunAllTests();
     } // namespace tests
 } // namespace math

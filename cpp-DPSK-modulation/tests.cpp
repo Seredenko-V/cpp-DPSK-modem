@@ -193,6 +193,16 @@ namespace math {
             cerr << "math::TestGetValueAfterPoint has passed"s << endl;
         }
 
+        void TestGetDigitsNumAfterPoint() {
+            assert(GetDigitsNumAfterPoint(52151.124) == 3);
+            assert(GetDigitsNumAfterPoint(2.000000) == 0);
+            assert(GetDigitsNumAfterPoint(7) == 0);
+            assert(GetDigitsNumAfterPoint(2.123456) == 6);
+            assert(GetDigitsNumAfterPoint(2.000006) == 6);
+            assert(GetDigitsNumAfterPoint(5.2) == 1);
+            cerr << "math::TestGetDigitsNumAfterPoint has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
@@ -204,6 +214,7 @@ namespace math {
             TestFindNearestMultiple();
             TestGetGCD();
             TestGetValueAfterPoint();
+            TestGetDigitsNumAfterPoint();
             cerr << ">>> math::AllTests has passed <<<"s << endl;
         }
     } // namespace tests

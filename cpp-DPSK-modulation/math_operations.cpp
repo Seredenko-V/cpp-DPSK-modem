@@ -69,15 +69,15 @@ namespace math {
         return symbols;
     }
 
-    bool IsSameDouble(double lhs, double rhs, double delta) {
+    bool IsSameDouble(double lhs, double rhs, double delta) noexcept {
         return abs(lhs - rhs) <= delta;
     }
 
-    double DegreesToRadians(double angle_degree) {
+    double DegreesToRadians(double angle_degree) noexcept {
         return angle_degree * M_PI / 180;
     }
 
-    void PhaseToRangeFrom0To2PI(double& phase) {
+    void PhaseToRangeFrom0To2PI(double& phase) noexcept {
         while (phase >= 2 * M_PI) {
             phase -= 2 * M_PI;
         }
@@ -132,5 +132,12 @@ namespace math {
         size_t last_no_zero_digit = digits_after_point.find_last_not_of('0');
         digits_after_point = digits_after_point.substr(first_no_zero_digit, last_no_zero_digit - first_no_zero_digit + 1);
         return stoi(digits_after_point);
+    }
+
+    uint32_t GetDigitsNumAfterPoint(double value) {
+        string digits_after_point = to_string(value);
+        size_t point_pos = digits_after_point.find('.');
+        size_t last_no_zero_digit = digits_after_point.find_last_not_of('0');
+        return last_no_zero_digit - point_pos;
     }
 } // namespace math
