@@ -801,76 +801,60 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestDemodulationWithPhaseShift has passed"s << endl;
         }
 
-        void TestDemodulationWithDecorrelationMatrix() {
-            { // частота дискретизации 19200 Гц, несущая 1800 Гц, скорость 1200 символов/с
-                constexpr uint32_t kSamplingFrequency = 19'200u;
-                constexpr uint32_t kSymbolSpeed = 1'200u;
-                constexpr uint32_t kCarrierFrequency = 1'800u;
-                dpsk_mod::DPSKModulator modulator;
-                modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kSymbolSpeed);
-                DPSKDemodulator demodulator;
-                demodulator.SetSamplingFrequency(kSamplingFrequency).SetSymbolSpeed(kSymbolSpeed).SetCarrierFrequency(kCarrierFrequency);
-                { // ОФМ-2 без сдвига созвездия
-                    vector<bool> bits{0,1,1,1,0,1};
-                    vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 1);
-                    vector<double> mod_bits = modulator.Modulation(bits);
-                    ofstream fout("test_mod.txt"s);
-                    fout << mod_bits;
-                    fout.close();
-                    vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
-                    assert(symbols == demod_bits);
-                }
-                // ОФМ-4 без сдвига созвездия
-                modulator.SetPositionality(4);
-                demodulator.SetPositionality(4);
-                { // без опорного символа в последовательности бит
-                    vector<bool> bits{1,0, 1,1, 0,1, 0,0};
-                    vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 2);
-                    vector<double> mod_bits = modulator.Modulation(bits);
-                    vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
-                    assert(symbols == demod_symbols);
-                }{ // с опорным символом в последовательности бит
-                    vector<bool> bits_without_pivot_symbol{1,0, 1,1, 0,1, 0,0};
-                    vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits_without_pivot_symbol, 2);
-                    vector<double> mod_bits = modulator.Modulation({0,0, 1,0, 1,1, 0,1, 0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
-                    vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
-                    assert(symbols == demod_symbols);
-                }
-            }{ // частота дискретизации 50000 Гц, несущая 3750 Гц, скорость 1000 символов/с
-                constexpr uint32_t kSamplingFrequency = 50'000u;
-                constexpr uint32_t kSymbolSpeed = 1'000u;
-                constexpr uint32_t kCarrierFrequency = 3'750u;
-                dpsk_mod::DPSKModulator modulator;
-                modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kSymbolSpeed);
-                DPSKDemodulator demodulator;
-                demodulator.SetSamplingFrequency(kSamplingFrequency).SetSymbolSpeed(kSymbolSpeed).SetCarrierFrequency(kCarrierFrequency);
-                { // ОФМ-2 без сдвига созвездия
-                    vector<bool> bits{0,1,1,1,0,1};
-                    vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 1);
-                    vector<double> mod_bits = modulator.Modulation(bits);
-                    ofstream fout("test_mod.txt"s);
-                    fout << mod_bits;
-                    fout.close();
-                    vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
-                    assert(symbols == demod_bits);
-                }
-                // ОФМ-4 без сдвига созвездия
-                modulator.SetPositionality(4);
-                demodulator.SetPositionality(4);
-                { // без опорного символа в последовательности бит
-                    vector<bool> bits{1,0, 1,1, 0,1, 0,0};
-                    vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 2);
-                    vector<double> mod_bits = modulator.Modulation(bits);
-                    vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
-                    assert(symbols == demod_symbols);
-                }{ // с опорным символом в последовательности бит
-                    vector<bool> bits_without_pivot_symbol{1,0, 1,1, 0,1, 0,0};
-                    vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits_without_pivot_symbol, 2);
-                    vector<double> mod_bits = modulator.Modulation({0,0, 1,0, 1,1, 0,1, 0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
-                    vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
-                    assert(symbols == demod_symbols);
-                }
+        void CheckExchange(uint32_t sampling_frequency, uint32_t symbol_speed, uint32_t carrier_frequency) {
+            dpsk_mod::DPSKModulator modulator;
+            modulator.SetSamplingFrequency(sampling_frequency).SetCarrierFrequency(carrier_frequency).SetIntermediateFrequency(symbol_speed);
+            DPSKDemodulator demodulator;
+            demodulator.SetSamplingFrequency(sampling_frequency).SetSymbolSpeed(symbol_speed).SetCarrierFrequency(carrier_frequency);
+            int num_bit_per_symbol = 1;
+            { // ОФМ-2 без сдвига созвездия
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
+                assert(symbols == demod_bits);
             }
+            // ОФМ-4 без сдвига созвездия
+            modulator.SetPositionality(4);
+            demodulator.SetPositionality(4);
+            num_bit_per_symbol = 2;
+            { // без опорного символа в последовательности бит
+                vector<bool> bits{1,0, 1,1, 0,1, 0,0};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
+                assert(symbols == demod_symbols);
+            }{ // с опорным символом в последовательности бит
+                vector<bool> bits_without_pivot_symbol{1,0, 1,1, 0,1, 0,0};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits_without_pivot_symbol, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation({0,0, 1,0, 1,1, 0,1, 0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
+                vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
+                assert(symbols == demod_symbols);
+            }
+            // ОФМ-8 без сдвига созвездия
+            modulator.SetPositionality(8);
+            demodulator.SetPositionality(8);
+            num_bit_per_symbol = 3;
+            { // без опорного символа в последовательности бит
+                vector<bool> bits{1,1,0, 0,1,1, 0,0,1, 1,0,0};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
+                assert(symbols == demod_symbols);
+            }{ // с опорным символом в последовательности бит
+                vector<bool> bits_without_pivot_symbol{1,0,1, 1,1,1, 0,0,1, 0,0,0};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits_without_pivot_symbol, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation({0,0,0, 1,0,1, 1,1,1, 0,0,1, 0,0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
+                vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
+                assert(symbols == demod_symbols);
+            }
+        }
+
+        void TestDemodulationWithDecorrelationMatrix() {
+            // символьная скорость должна быть кратна частоте дискретизации
+            CheckExchange(19200, 1200, 1800); // частота дискретизации 19200 Гц, скорость 1200 символов/с, несущая 1800 Гц
+            CheckExchange(50000, 1000, 3750); // частота дискретизации 50000 Гц, скорость 1000 символов/с, несущая 3750 Гц
+            CheckExchange(230652, 12814, 33333); // частота дискретизации 230652 Гц, скорость 12814 символов/с, несущая 3750 Гц
             cerr << "dpsk_demod::TestDemodulationWithDecorrelationMatrix has passed"s << endl;
         }
 
