@@ -3,6 +3,8 @@
 #include <cmath>
 #include <string>
 #include <stdexcept>
+#include <sstream>
+#include <iomanip>
 
 #include <iostream>
 using namespace std;
@@ -122,8 +124,16 @@ namespace math {
         return std::abs(second);
     }
 
-    uint32_t GetValueAfterPoint(double value) {
-        string digits_after_point = to_string(value);
+    uint32_t GetValueAfterPoint(double value, int num_digits_after_point) {
+        if (num_digits_after_point < 0) {
+            throw invalid_argument("Number digits after decimal point is negative."s);
+        }
+        if (num_digits_after_point > 16) {
+            throw invalid_argument("Too many digits after decimal point. "s + to_string(num_digits_after_point) + '>' + "16."s);
+        }
+        ostringstream tmp_stream;
+        tmp_stream << fixed << setprecision(num_digits_after_point) << value;
+        string digits_after_point = tmp_stream.str();
         size_t point_pos = digits_after_point.find('.');
         size_t first_no_zero_digit = digits_after_point.find_first_not_of('0', point_pos + 1);
         if (first_no_zero_digit == string::npos) {
@@ -134,10 +144,16 @@ namespace math {
         return stoi(digits_after_point);
     }
 
-    uint32_t GetDigitsNumAfterPoint(double value) {
-        string digits_after_point = to_string(value);
+    uint32_t GetDigitsNumAfterPoint(double value, int num_digits_after_point) {
+        ostringstream tmp_stream;
+        tmp_stream << fixed << setprecision(num_digits_after_point) << value;
+        string digits_after_point = tmp_stream.str();
         size_t point_pos = digits_after_point.find('.');
         size_t last_no_zero_digit = digits_after_point.find_last_not_of('0');
         return last_no_zero_digit - point_pos;
+    }
+
+    OrdinaryFraction DecimalToOrdinary(double value) {
+        return {};
     }
 } // namespace math

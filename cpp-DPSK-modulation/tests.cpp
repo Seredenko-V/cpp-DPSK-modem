@@ -183,6 +183,7 @@ namespace math {
         }
 
         void TestGetValueAfterPoint() {
+            // до 10 знака после запятой
             assert(GetValueAfterPoint(52151.124) == 124);
             assert(GetValueAfterPoint(0.1) == 1);
             assert(GetValueAfterPoint(5.0) == 0);
@@ -190,6 +191,10 @@ namespace math {
             assert(GetValueAfterPoint(3.115632) == 115632);
             assert(GetValueAfterPoint(3.000126) == 126);
             assert(GetValueAfterPoint(0.000001) == 1);
+            assert(GetValueAfterPoint(0.0000000009) == 9);
+            // с указанием нужного количества цифр после запятой
+            assert(GetValueAfterPoint(3.115632, 3) == 116); // с округлением
+            assert(GetValueAfterPoint(3.0000000000000018, 16) == 18);
             cerr << "math::TestGetValueAfterPoint has passed"s << endl;
         }
 
@@ -200,7 +205,14 @@ namespace math {
             assert(GetDigitsNumAfterPoint(2.123456) == 6);
             assert(GetDigitsNumAfterPoint(2.000006) == 6);
             assert(GetDigitsNumAfterPoint(5.2) == 1);
+            assert(GetDigitsNumAfterPoint(7.12345670) == 7);
             cerr << "math::TestGetDigitsNumAfterPoint has passed"s << endl;
+        }
+
+        void TestDecimalToOrdinary() {
+
+            assert(false);
+            cerr << "math::TestDecimalToOrdinary has passed"s << endl;
         }
 
         void RunAllTests() {
@@ -215,6 +227,7 @@ namespace math {
             TestGetGCD();
             TestGetValueAfterPoint();
             TestGetDigitsNumAfterPoint();
+            TestDecimalToOrdinary();
             cerr << ">>> math::AllTests has passed <<<"s << endl;
         }
     } // namespace tests

@@ -57,13 +57,22 @@ namespace math {
     /// Наибольший общий делитель (НОД). Сложность: O(1)
     uint32_t GetGCD(int first, int second) noexcept;
 
-    /// Извлечь дробную часть числа до 6 знака после запятой. Сложность: O(N)
+    /// Извлечь дробную часть числа до num_digits_after_point знака после запятой. Сложность: O(N)
     /// 62.125 -> 125; 0.04 -> 4.
-    uint32_t GetValueAfterPoint(double value);
+    uint32_t GetValueAfterPoint(double value, int num_digits_after_point = 10);
 
     /// Получить количество цифр после запятой. Используется для нахождения знаменателя дроби. Сложность: O(N)
-    /// 0.004 -> 3; 7.14125410 -> 8
-    uint32_t GetDigitsNumAfterPoint(double value);
+    /// 0.004 -> 3; 7.12345670 -> 7
+    uint32_t GetDigitsNumAfterPoint(double value, int num_digits_after_point = 10);
+
+    struct OrdinaryFraction {
+        uint32_t integer = 0;
+        uint32_t numerator = 0;
+        uint32_t denumerator = 1;
+    };
+
+    /// Перевод десятичной дроби в обыкновенную
+    OrdinaryFraction DecimalToOrdinary(double value);
 
     namespace tests {
         void TestIsPowerOfTwo();
@@ -77,6 +86,7 @@ namespace math {
         void TestGetGCD();
         void TestGetValueAfterPoint();
         void TestGetDigitsNumAfterPoint();
+        void TestDecimalToOrdinary();
         void RunAllTests();
     } // namespace tests
 } // namespace math
