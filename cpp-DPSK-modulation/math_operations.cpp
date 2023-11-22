@@ -1,7 +1,6 @@
 #include "math_operations.h"
 
 #include <cmath>
-#include <string>
 #include <stdexcept>
 
 #include <iostream>
@@ -69,11 +68,42 @@ namespace math {
         return symbols;
     }
 
-    bool IsSameDouble(double lhs, double rhs, double delta) {
+    bool IsSameDouble(double lhs, double rhs, double delta) noexcept {
         return abs(lhs - rhs) <= delta;
     }
 
-    double DegreesToRadians(double angle_degree) {
+    double DegreesToRadians(double angle_degree) noexcept {
         return angle_degree * M_PI / 180;
+    }
+
+    void PhaseToRangeFrom0To2PI(double& phase) noexcept {
+        while (phase >= 2 * M_PI) {
+            phase -= 2 * M_PI;
+        }
+        while (phase < 0) {
+            phase += 2 * M_PI;
+        }
+    }
+
+    uint32_t FindNearestMultiple(uint32_t value, uint32_t divisible, MultipleValue is_more) {
+        if (value == 0) {
+            return 0;
+        }
+        if (divisible % value == 0) {
+            return value;
+        }
+        int32_t int_part = divisible / value;
+        if (int_part == 0) {
+            throw invalid_argument("Rounding up is not possible"s);
+        }
+
+        if (is_more == MultipleValue::MORE) {
+            while (divisible % int_part && int_part > 0) {
+                --int_part;
+            }
+        } else {
+            while (divisible % ++int_part);
+        }
+        return divisible / int_part;
     }
 } // namespace math

@@ -2,8 +2,14 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
+#include <sstream>
+#include <iomanip>
 
 namespace math {
+    template <typename Type>
+    using Matrix = std::vector<std::vector<Type>>;
+
     /// Является ли число степенью двойки: N^2 = value. Сложность: O(1)
     bool IsPowerOfTwo(int value) noexcept;
 
@@ -20,8 +26,9 @@ namespace math {
     std::vector<uint32_t> ConvertationBitsToDecValues(const std::vector<bool>& bits, int32_t num_bits_per_symbol);
 
     /// Сравнение двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
-    bool IsSameDouble(double lhs, double rhs, double delta = 1e-6);
+    bool IsSameDouble(double lhs, double rhs, double delta = 1e-6) noexcept;
 
+    /// Сравнение двух контейнеров с double. Сложность: O(1)
     template <typename Container>
     bool IsSameContainersWithDouble(const Container& lhs, const Container& rhs, double delta = 1e-6) {
         if (lhs.size() != rhs.size()) {
@@ -35,8 +42,20 @@ namespace math {
         return true;
     }
 
-    /// Перевод углов в радианы
-    double DegreesToRadians(double angle_degree);
+    /// Перевод углов в радианы. Сложность: O(1)
+    double DegreesToRadians(double angle_degree) noexcept;
+
+    /// Перенос значение фазы в пределы [0, 2 * M_PI). Сложность: O(phase / (2 * M_PI))
+    void PhaseToRangeFrom0To2PI(double& phase) noexcept;
+
+    /// Кратное число должно быть больше или меньше некоторого value
+    enum class MultipleValue {
+        MORE,
+        LESS
+    };
+
+    /// Поиск ближайшего к value числа, которое делит без остатка multiple. Сложность: O(N)
+    uint32_t FindNearestMultiple(uint32_t value, uint32_t divisible, MultipleValue is_more = MultipleValue::MORE);
 
     namespace tests {
         void TestIsPowerOfTwo();
@@ -45,6 +64,8 @@ namespace math {
         void TestConvertationBitsToDecValues();
         void TestIsSameDouble();
         void TestDegreesToRadians();
+        void TestPhaseToRangeFrom0To2PI();
+        void TestFindNearestMultiple();
         void RunAllTests();
     } // namespace tests
 } // namespace math
