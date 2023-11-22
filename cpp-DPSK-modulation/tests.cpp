@@ -210,8 +210,26 @@ namespace math {
         }
 
         void TestDecimalToOrdinary() {
-
-            assert(false);
+            {
+                OrdinaryFraction fract{1,1,2};
+                assert(DecimalToOrdinary(1.5) == fract);
+                assert(DecimalToOrdinary(3.0 / 2.0) == fract);
+            }{
+                OrdinaryFraction fract{0,3,4};
+                assert(DecimalToOrdinary(0.75) == fract);
+                assert(DecimalToOrdinary(9.0 / 12.0) == fract);
+            }
+            // чистые периодические дроби
+            {
+                OrdinaryFraction fract{0,1,7};
+                assert(DecimalToOrdinary(1.0 / 7) == fract);
+            }{
+                OrdinaryFraction fract{0,1,3};
+                assert(DecimalToOrdinary(1.0 / 3) == fract);
+            }{
+                OrdinaryFraction fract{0,5,11};
+                assert(DecimalToOrdinary(5.0 / 11) == fract);
+            }
             cerr << "math::TestDecimalToOrdinary has passed"s << endl;
         }
 

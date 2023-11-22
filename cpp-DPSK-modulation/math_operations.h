@@ -2,6 +2,9 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
+#include <sstream>
+#include <iomanip>
 
 namespace math {
     template <typename Type>
@@ -57,19 +60,36 @@ namespace math {
     /// Наибольший общий делитель (НОД). Сложность: O(1)
     uint32_t GetGCD(int first, int second) noexcept;
 
+    template <typename Number>
+    std::string NumberToString(Number value, int num_digits_after_point = 10) {
+        std::ostringstream tmp_stream;
+        tmp_stream << std::fixed << std::setprecision(num_digits_after_point) << value;
+        return tmp_stream.str();
+    }
+
     /// Извлечь дробную часть числа до num_digits_after_point знака после запятой. Сложность: O(N)
     /// 62.125 -> 125; 0.04 -> 4.
-    uint32_t GetValueAfterPoint(double value, int num_digits_after_point = 10);
+    std::string GetTextAfterPoint(double value, int num_digits_after_point = 10);
+    uint64_t GetValueAfterPoint(double value, int num_digits_after_point = 10);
 
     /// Получить количество цифр после запятой. Используется для нахождения знаменателя дроби. Сложность: O(N)
     /// 0.004 -> 3; 7.12345670 -> 7
-    uint32_t GetDigitsNumAfterPoint(double value, int num_digits_after_point = 10);
+    uint64_t GetDigitsNumAfterPoint(double value, int num_digits_after_point = 10);
+
+    /// Определить период дроби. Сложность: O(2 * N)
+    /// 1/3 -> 3; 1/7 -> 142857
+    std::string GetTextPeriodFraction(double value, int num_digits_after_point = 16);
 
     struct OrdinaryFraction {
-        uint32_t integer = 0;
-        uint32_t numerator = 0;
-        uint32_t denumerator = 1;
+        uint32_t integer = 0u;
+        uint32_t numerator = 0u;
+        uint32_t denumerator = 1u;
+        void Shorten(); // сократить дробь
     };
+
+    inline bool operator==(const OrdinaryFraction& lhs, const OrdinaryFraction& rhs) {
+        return lhs.integer == rhs.integer && lhs.numerator == rhs.numerator && lhs.denumerator == rhs.denumerator;
+    }
 
     /// Перевод десятичной дроби в обыкновенную
     OrdinaryFraction DecimalToOrdinary(double value);
