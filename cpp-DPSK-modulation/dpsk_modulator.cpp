@@ -51,13 +51,13 @@ namespace dpsk_mod {
 
     void DPSKModulator::FillPhaseShifts() {
         phase_shifts_.clear();
-        static constexpr double kTotalAngle = 360; // количество градусов на окружности
+        static constexpr double kTotalAngle = 2 * M_PI; // радиан на окружности
         const double kStepPhase = kTotalAngle / positionality_;
         vector<vector<bool>> grey_codes = gray_code::MakeGrayCodes(positionality_);
         double current_phase = 0;
         for (uint16_t i = 0; i < positionality_; ++i) {
             assert(current_phase < kTotalAngle);
-            phase_shifts_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase + (phase_shift_ * 180 / M_PI));
+            phase_shifts_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase + phase_shift_);
             current_phase += kStepPhase;
         }
     }
@@ -77,7 +77,7 @@ namespace dpsk_mod {
         const double kCyclicFrequencyCoefficient = carrier_cyclic_frequency_ * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
-            phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
+            phase_ += phase_shifts_.find(symbols[symbol_id])->second;
             math::PhaseToRangeFrom0To2PI(phase_);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
 //                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * mod_function_(kCyclicFrequencyCoefficient * sample_id + phase_);
@@ -93,7 +93,7 @@ namespace dpsk_mod {
         const double kIntermediateCyclicFrequencyCoefficient = intermediate_cyclic_frequency_ * time_step_between_samples_;
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
-            phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
+            phase_ += phase_shifts_.find(symbols[symbol_id])->second;
             math::PhaseToRangeFrom0To2PI(phase_);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
                 size_t time_difference_step = sample_id + symbol_id * num_samples_in_symbol;

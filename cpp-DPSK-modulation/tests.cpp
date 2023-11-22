@@ -295,12 +295,26 @@ namespace dpsk_mod {
             }
         }
 
+        template <typename Key>
+        bool IsSameMapWithDouble(const map<Key, double>& lhs, const map<Key, double>& rhs) {
+            if (lhs.size() != rhs.size()) {
+                return false;
+            }
+            using map_iterator = typename map<Key, double>::const_iterator;
+            for (map_iterator lhs_it = lhs.begin(), rhs_it = rhs.begin(); lhs_it != lhs.end(); ++lhs_it, ++rhs_it) {
+                if (!math::IsSameDouble(lhs_it->second,rhs_it->second)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         void TestDefaultConstructor() {
             // по умолчанию используется двухпозиционная ОФМ
             DPSKModulator modulator;
             assert(modulator.GetPositionality() == 2);
-            map<uint16_t, double> expected_phase_shifts{{0, 0}, {1, 180}};
-            assert(modulator.GetPhaseShifts() == expected_phase_shifts);
+            map<uint16_t, double> expected_phase_shifts{{0, 0}, {1, M_PI}};
+            assert(IsSameMapWithDouble(expected_phase_shifts, modulator.GetPhaseShifts()));
             cerr << "dpsk_mod::TestDefaultConstructor has passed"s << endl;
         }
 
@@ -311,26 +325,26 @@ namespace dpsk_mod {
                 modulator.SetPositionality(4);
                 assert(modulator.GetPositionality() == 4);
                 map<uint16_t, double> expected_phase_shifts{
-                     {0, 0},   // 00 -> 0 градусов
-                     {1, 90},  // 01 -> 90 градусов
-                     {3, 180}, // 11 -> 180 градусов
-                     {2, 270}  // 10 -> 270 градусов
+                     {0, 0},            // 00 -> 0 градусов
+                     {1, M_PI / 2},     // 01 -> 90 градусов
+                     {3, M_PI},         // 11 -> 180 градусов
+                     {2, 3 * M_PI / 2}  // 10 -> 270 градусов
                 };
-                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
+                assert(IsSameMapWithDouble(expected_phase_shifts, modulator.GetPhaseShifts()));
             }{
                 modulator.SetPositionality(8);
                 assert(modulator.GetPositionality() == 8);
                 map<uint16_t, double> expected_phase_shifts{
-                    {0, 0},   // 000 -> 0 градусов
-                    {1, 45},  // 001 -> 45 градусов
-                    {3, 90},  // 011 -> 90 градусов
-                    {2, 135}, // 010 -> 135 градусов
-                    {6, 180}, // 110 -> 180 градусов
-                    {7, 225}, // 111 -> 225 градусов
-                    {5, 270}, // 101 -> 270 градусов
-                    {4, 315}, // 100 -> 315 градусов
+                    {0, 0},            // 000 -> 0 градусов
+                    {1, M_PI / 4},     // 001 -> 45 градусов
+                    {3, M_PI / 2},     // 011 -> 90 градусов
+                    {2, 3 * M_PI / 4}, // 010 -> 135 градусов
+                    {6, M_PI},         // 110 -> 180 градусов
+                    {7, 5 * M_PI / 4}, // 111 -> 225 градусов
+                    {5, 3 * M_PI / 2}, // 101 -> 270 градусов
+                    {4, 7 * M_PI / 4}, // 100 -> 315 градусов
                 };
-                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
+                assert(IsSameMapWithDouble(expected_phase_shifts, modulator.GetPhaseShifts()));
             }
             cerr << "dpsk_mod::TestSetPositionality has passed"s << endl;
         }
@@ -340,19 +354,19 @@ namespace dpsk_mod {
             { // сдвиг ОФМ-2 на 90 градусов
                 modulator.SetPhaseShift(M_PI / 2);
                 map<uint16_t, double> expected_phase_shifts{
-                     {0, 90},
-                     {1, 270}
+                     {0, M_PI / 2},
+                     {1, 3 * M_PI / 2}
                 };
-                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
+                assert(IsSameMapWithDouble(expected_phase_shifts, modulator.GetPhaseShifts()));
             }{ // сдвиг ОФМ-4 на 45 градусов
                 modulator.SetPositionality(4).SetPhaseShift(M_PI / 4);
                 map<uint16_t, double> expected_phase_shifts{
-                     {0, 45},   // 00 -> 0 градусов
-                     {1, 135},  // 01 -> 135 градусов
-                     {3, 225},  // 11 -> 225 градусов
-                     {2, 315}   // 10 -> 315 градусов
+                     {0, M_PI / 4},      // 00 -> 0 градусов
+                     {1, 3 * M_PI / 4},  // 01 -> 135 градусов
+                     {3, 5 * M_PI / 4},  // 11 -> 225 градусов
+                     {2, 7 * M_PI / 4}   // 10 -> 315 градусов
                 };
-                assert(modulator.GetPhaseShifts() == expected_phase_shifts);
+                assert(IsSameMapWithDouble(expected_phase_shifts, modulator.GetPhaseShifts()));
             }
             cerr << "dpsk_mod::TestSetPhaseShift has passed"s << endl;
         }
