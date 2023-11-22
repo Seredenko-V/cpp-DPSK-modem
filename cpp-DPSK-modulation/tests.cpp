@@ -174,65 +174,6 @@ namespace math {
             cerr << "math::TestFindNearestMultiple has passed"s << endl;
         }
 
-        void TestGetGCD() {
-            assert(GetGCD(41, 7) == 1);
-            assert(GetGCD(0, 0) == 1);
-            assert(GetGCD(15, 5) == 5);
-            assert(GetGCD(12, 9) == 3);
-            cerr << "math::TestGetGCD has passed"s << endl;
-        }
-
-        void TestGetValueAfterPoint() {
-            // до 10 знака после запятой
-            assert(GetValueAfterPoint(52151.124) == 124);
-            assert(GetValueAfterPoint(0.1) == 1);
-            assert(GetValueAfterPoint(5.0) == 0);
-            assert(GetValueAfterPoint(9) == 0);
-            assert(GetValueAfterPoint(3.115632) == 115632);
-            assert(GetValueAfterPoint(3.000126) == 126);
-            assert(GetValueAfterPoint(0.000001) == 1);
-            assert(GetValueAfterPoint(0.0000000009) == 9);
-            // с указанием нужного количества цифр после запятой
-            assert(GetValueAfterPoint(3.115632, 3) == 116); // с округлением
-            assert(GetValueAfterPoint(3.0000000000000018, 16) == 18);
-            cerr << "math::TestGetValueAfterPoint has passed"s << endl;
-        }
-
-        void TestGetDigitsNumAfterPoint() {
-            assert(GetDigitsNumAfterPoint(52151.124) == 3);
-            assert(GetDigitsNumAfterPoint(2.000000) == 0);
-            assert(GetDigitsNumAfterPoint(7) == 0);
-            assert(GetDigitsNumAfterPoint(2.123456) == 6);
-            assert(GetDigitsNumAfterPoint(2.000006) == 6);
-            assert(GetDigitsNumAfterPoint(5.2) == 1);
-            assert(GetDigitsNumAfterPoint(7.12345670) == 7);
-            cerr << "math::TestGetDigitsNumAfterPoint has passed"s << endl;
-        }
-
-        void TestDecimalToOrdinary() {
-            {
-                OrdinaryFraction fract{1,1,2};
-                assert(DecimalToOrdinary(1.5) == fract);
-                assert(DecimalToOrdinary(3.0 / 2.0) == fract);
-            }{
-                OrdinaryFraction fract{0,3,4};
-                assert(DecimalToOrdinary(0.75) == fract);
-                assert(DecimalToOrdinary(9.0 / 12.0) == fract);
-            }
-            // чистые периодические дроби
-            {
-                OrdinaryFraction fract{0,1,7};
-                assert(DecimalToOrdinary(1.0 / 7) == fract);
-            }{
-                OrdinaryFraction fract{0,1,3};
-                assert(DecimalToOrdinary(1.0 / 3) == fract);
-            }{
-                OrdinaryFraction fract{0,5,11};
-                assert(DecimalToOrdinary(5.0 / 11) == fract);
-            }
-            cerr << "math::TestDecimalToOrdinary has passed"s << endl;
-        }
-
         void RunAllTests() {
             TestIsPowerOfTwo();
             TestExtractNumBitsFormValue();
@@ -242,10 +183,6 @@ namespace math {
             TestDegreesToRadians();
             TestPhaseToRangeFrom0To2PI();
             TestFindNearestMultiple();
-            TestGetGCD();
-            TestGetValueAfterPoint();
-            TestGetDigitsNumAfterPoint();
-            TestDecimalToOrdinary();
             cerr << ">>> math::AllTests has passed <<<"s << endl;
         }
     } // namespace tests
@@ -574,21 +511,21 @@ namespace dpsk_demod {
             {
                 vector<double> mod_bit = modulator.Modulation({0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2) / 2, sin(M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2), sin(M_PI / 2)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2) / 2, sin(3 * M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2), sin(3 * M_PI / 2)}));
             }
             modulator.SetModulationFunction(dpsk_mod::Cos).SetPhase(0);
             {
                 vector<double> mod_bit = modulator.Modulation({0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(0) / 2, sin(0) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(0), sin(0)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI) / 2, sin(M_PI) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI), sin(M_PI)}));
             }
             // ОФМ-4 без сдвига созвездия
             modulator.SetPositionality(4).SetPhase(0);
@@ -598,19 +535,19 @@ namespace dpsk_demod {
                 vector<double> mod_bit = modulator.Modulation({1,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
                 assert(IsSameComplexDouble(demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit.begin(), mod_bit.end()), inphase_quadrature_components));
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(0) / 2, sin(0) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(0), sin(0)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI) / 2, sin(M_PI) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI), sin(M_PI)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({0,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2) / 2, sin(3 * M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2), sin(3 * M_PI / 2)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2) / 2, sin(3 * M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2), sin(3 * M_PI / 2)}));
             }
             modulator.SetPhase(0);
             demodulator.SetPhase(0);
@@ -618,19 +555,19 @@ namespace dpsk_demod {
             { // модулирующая функция - косинус
                 vector<double> mod_bit = modulator.Modulation({1,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2) / 2, sin(3 * M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2), sin(3 * M_PI / 2)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2) / 2, sin(M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2), sin(M_PI / 2)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({0,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI) / 2, sin(M_PI) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI), sin(M_PI)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI) / 2, sin(M_PI) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI), sin(M_PI)}));
             }
             modulator.SetPhase(M_PI / 2);
             demodulator.SetPhase(0);
@@ -638,7 +575,7 @@ namespace dpsk_demod {
                 modulator.SetModulationFunction(dpsk_mod::Sin);
                 vector<double> mod_bit = modulator.Modulation({1,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2) / 2, sin(M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2), sin(M_PI / 2)}));
             }
             // ОФМ-8 без сдвига созвездия
             modulator.SetPositionality(8).SetPhase(0);
@@ -647,15 +584,15 @@ namespace dpsk_demod {
             { // модулирующая функция - синус
                 vector<double> mod_bit = modulator.Modulation({1,0,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(0) / 2, sin(0) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(0), sin(0)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1,0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(7 * M_PI / 4) / 2, sin(7 * M_PI / 4) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(7 * M_PI / 4), sin(7 * M_PI / 4)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1,1,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI) / 2, sin(M_PI) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI), sin(M_PI)}));
             }
             modulator.SetPhase(0);
             demodulator.SetPhase(0);
@@ -664,17 +601,17 @@ namespace dpsk_demod {
                 vector<double> mod_bit = modulator.Modulation({1,0,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
                 assert(IsSameComplexDouble(demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit.begin(), mod_bit.end()), inphase_quadrature_components));
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2) / 2, sin(3 * M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(3 * M_PI / 2), sin(3 * M_PI / 2)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1,0,0}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
                 assert(IsSameComplexDouble(demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit.begin(), mod_bit.end()), inphase_quadrature_components));
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(5 * M_PI / 4) / 2, sin(5 * M_PI / 4) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(5 * M_PI / 4), sin(5 * M_PI / 4)}));
             }{
                 vector<double> mod_bit = modulator.Modulation({1,1,1}, dpsk_mod::PresencePivotSymbol::WITH_PIVOT);
                 complex<double> inphase_quadrature_components = demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit);
                 assert(IsSameComplexDouble(demodulator.ExtractInPhaseAndQuadratureComponentsSymbol(mod_bit.begin(), mod_bit.end()), inphase_quadrature_components));
-                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2) / 2, sin(M_PI / 2) / 2}));
+                assert(IsSameComplexDouble(inphase_quadrature_components, {cos(M_PI / 2), sin(M_PI / 2)}));
             }
             cerr << "dpsk_demod::TestExtractInPhaseAndQuadratureComponentsSymbol has passed"s << endl;
         }

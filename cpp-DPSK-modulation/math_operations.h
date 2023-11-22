@@ -57,43 +57,6 @@ namespace math {
     /// Поиск ближайшего к value числа, которое делит без остатка multiple. Сложность: O(N)
     uint32_t FindNearestMultiple(uint32_t value, uint32_t divisible, MultipleValue is_more = MultipleValue::MORE);
 
-    /// Наибольший общий делитель (НОД). Сложность: O(1)
-    uint32_t GetGCD(int first, int second) noexcept;
-
-    template <typename Number>
-    std::string NumberToString(Number value, int num_digits_after_point = 10) {
-        std::ostringstream tmp_stream;
-        tmp_stream << std::fixed << std::setprecision(num_digits_after_point) << value;
-        return tmp_stream.str();
-    }
-
-    /// Извлечь дробную часть числа до num_digits_after_point знака после запятой. Сложность: O(N)
-    /// 62.125 -> 125; 0.04 -> 4.
-    std::string GetTextAfterPoint(double value, int num_digits_after_point = 10);
-    uint64_t GetValueAfterPoint(double value, int num_digits_after_point = 10);
-
-    /// Получить количество цифр после запятой. Используется для нахождения знаменателя дроби. Сложность: O(N)
-    /// 0.004 -> 3; 7.12345670 -> 7
-    uint64_t GetDigitsNumAfterPoint(double value, int num_digits_after_point = 10);
-
-    /// Определить период дроби. Сложность: O(2 * N)
-    /// 1/3 -> 3; 1/7 -> 142857
-    std::string GetTextPeriodFraction(double value, int num_digits_after_point = 16);
-
-    struct OrdinaryFraction {
-        uint32_t integer = 0u;
-        uint32_t numerator = 0u;
-        uint32_t denumerator = 1u;
-        void Shorten(); // сократить дробь
-    };
-
-    inline bool operator==(const OrdinaryFraction& lhs, const OrdinaryFraction& rhs) {
-        return lhs.integer == rhs.integer && lhs.numerator == rhs.numerator && lhs.denumerator == rhs.denumerator;
-    }
-
-    /// Перевод десятичной дроби в обыкновенную
-    OrdinaryFraction DecimalToOrdinary(double value);
-
     namespace tests {
         void TestIsPowerOfTwo();
         void TestExtractNumBitsFormValue();
@@ -103,10 +66,6 @@ namespace math {
         void TestDegreesToRadians();
         void TestPhaseToRangeFrom0To2PI();
         void TestFindNearestMultiple();
-        void TestGetGCD();
-        void TestGetValueAfterPoint();
-        void TestGetDigitsNumAfterPoint();
-        void TestDecimalToOrdinary();
         void RunAllTests();
     } // namespace tests
 } // namespace math

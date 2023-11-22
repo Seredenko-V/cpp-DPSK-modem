@@ -46,9 +46,6 @@ namespace dpsk_mod {
         /// Модуляция последовательности бит с указанием нужной позиционности. Сложность: O(positionality + N)
         std::vector<double> Modulation(const std::vector<bool>& bits, int positionality, PresencePivotSymbol is_presence = PresencePivotSymbol::WITHOUT_PIVOT);
 
-        // в дальнейшем появятся перегрузки для записи в принимаемый по НЕ константной ссылке контейнер
-        // и для приёма пары итераторов, указывающих на контейнер с битами
-
         /// Модуляция одного символа. Сложность: O(sampling_frequency / carrier_frequency)
         void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase) const;
 
@@ -72,7 +69,6 @@ namespace dpsk_mod {
         void TestDefaultConstructor();
         void TestSetPositionality(); // установление позиционности с заполнением словаря разностей фаз
         void TestSetPhaseShift(); // установление доп. фазового сдвига между символами
-
         void TestClassicalModulation(); // модуляция без переноса на промежуточную несущую
         void TestModulationWithUseIntermediateFreq(); // модуляция с переносом на промежуточную несущую
         void TestConstellationShift(); // сдвиг созвездия

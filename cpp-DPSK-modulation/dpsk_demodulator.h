@@ -16,7 +16,7 @@ namespace dpsk_demod {
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
         DPSKDemodulator& SetPositionality(int positionality) override;
 
-        /// Установить значение несущей частоты. Сложность: O(???)
+        /// Установить значение несущей частоты. Сложность: O(sampling_frequency / carrier_frequency)
         DPSKDemodulator& SetCarrierFrequency(int carrier_frequency) override;
 
         /// Извлечь синфазную и квадратурную составляющие символа (элементарного сиганала). Сложность: O(N)
@@ -28,10 +28,6 @@ namespace dpsk_demod {
 
         /// Демодуляция последовательности отсчетов. Сложность: O(N)
         std::vector<uint32_t> Demodulation(const std::vector<double>& samples);
-
-//    private:
-        /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность(sampling_frequency / carrier_frequency)
-        void FillCosAndSinOscillation();
 
         /// Получить значения границ диапазонов разностей фаз между символами. Сложность: O(1)
         const std::vector<double>& GetBoundsSymbols() const noexcept;
@@ -45,20 +41,23 @@ namespace dpsk_demod {
         /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(positionality)
         DPSKDemodulator& SetPhaseShift(double phase_shift) override;
 
-        /// Получить матрицу декорреляции
+        /// Получить матрицу декорреляции. Сложность: O(1)
         const Matrix<double>& GetDecorrelationMatrix() const noexcept;
 
     private:
+        /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность: O(sampling_frequency / carrier_frequency)
+        void FillCosAndSinOscillation();
+
         /// Заполнить границы (сектора) символов на огружности. Сложность: O(positionality)
         void FillSymbolsBounds();
 
         /// Заполнить последовательность символов на окружности от 0 до 2*PI в соответсвии с кодом Грея. Сложность: O(2 * positionality * log2(positionality))
         void FillSymbolsSequenceOnCircle();
 
-        /// Построить матрицу декореляции для минимизации паразитного отклика I и Q компонент
+        /// Построить матрицу декореляции для минимизации паразитного отклика I и Q компонент. Сложность: O(sampling_frequency / carrier_frequency)
         void CreateDecorrelationMatrix();
 
-        /// Уменьшение влияния паразитного отклика I и Q компонент
+        /// Уменьшение влияния паразитного отклика I и Q компонент. Сложность: O(N^2)
         std::complex<double> Decorrelation(std::complex<double> IQ_components);
 
     private:
@@ -68,7 +67,6 @@ namespace dpsk_demod {
         std::vector<double> bounds_symbols_; // границы диапазонов разностей фаз между символами
         std::vector<uint32_t> symbols_sequence_on_circle_; // полследовательность символов на окружности в соответствии с кодом Грея
         Matrix<double> decorrelation_matrix_;
-        uint32_t num_symbols_ = 1;
     };
 
     namespace tests {

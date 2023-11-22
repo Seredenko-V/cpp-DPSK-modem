@@ -47,7 +47,7 @@ namespace dpsk_demod {
         // нормировка
         cos_component /= one_symbol_samples.size();
         sin_component /= one_symbol_samples.size();
-        return {cos_component, sin_component};
+        return {cos_component * 2, sin_component * 2};
     }
 
     complex<double> DPSKDemodulator::ExtractInPhaseAndQuadratureComponentsSymbol(vector<double>::const_iterator left_bound, vector<double>::const_iterator right_bound) const {
@@ -66,7 +66,7 @@ namespace dpsk_demod {
         // нормировка
         cos_component /= kNumSamplesPerSymbol;
         sin_component /= kNumSamplesPerSymbol;
-        return {cos_component, sin_component};
+        return {cos_component * 2, sin_component * 2};
     }
 
     double DPSKDemodulator::ExtractPhaseValue(complex<double> inphase_quadrature_components) const {
@@ -76,8 +76,6 @@ namespace dpsk_demod {
     }
 
     void DPSKDemodulator::FillCosAndSinOscillation() {
-        static uint64_t time = 0;
-//        const uint32_t kUsedCarrierFrequency = sampling_frequency_ % carrier_frequency_ ? intermediate_frequency_ : carrier_frequency_;
         // частота дискретизации должна быть кратна несущей или промежуточной частоте, чтобы в одном периоде было целое количество отсчетов
         if (sampling_frequency_ % symbol_speed_) {
             throw invalid_argument("The sampling frequency must be a multiple of the symbol speed so that there is an integer number of samples in one period."s);
@@ -87,16 +85,10 @@ namespace dpsk_demod {
         sin_oscillation_.resize(kNumSamplesInSymbol);
 
         const double kCyclicFrequencyCoefficient = 2 * M_PI * carrier_frequency_ * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
-//        ofstream only_cos("only_cos.txt"s);
-//        ofstream only_sin("only_sin.txt"s);
         for (uint16_t sample_id = 0; sample_id < kNumSamplesInSymbol; ++sample_id) {
-            cos_oscillation_[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id/*time*/ + phase_);
-//            only_cos << cos_oscillation_[sample_id] << endl;
-            sin_oscillation_[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id/*time*/ + phase_);
-//            only_sin << sin_oscillation_[sample_id] << endl;
-            ++time;
+            cos_oscillation_[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id + phase_);
+            sin_oscillation_[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id + phase_);
         }
-        time = time % (num_symbols_ * kNumSamplesInSymbol);
         phase_ += kCyclicFrequencyCoefficient * kNumSamplesInSymbol;
         math::PhaseToRangeFrom0To2PI(phase_);
     }
@@ -187,30 +179,18 @@ namespace dpsk_demod {
         vector<uint32_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol - 1);
 
         for (size_t i = 0; i < samples.size() - kNumSamplesPerSymbol; i += kNumSamplesPerSymbol) {
-//            if (sampling_frequency_ % carrier_frequency_) {
-//                num_symbols_ = 2;
-//                FillCosAndSinOscillation();
-//            }
             vector<double>::const_iterator first_symbol_begin_it = samples.begin() + i;
             vector<double>::const_iterator first_symbol_end_it = samples.begin() + i + kNumSamplesPerSymbol;
             complex<double> first_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(first_symbol_begin_it, first_symbol_end_it);
 
             if (sampling_frequency_ % carrier_frequency_) {
-                num_symbols_ = 2;
                 FillCosAndSinOscillation();
             }
-
             vector<double>::const_iterator second_symbol_begin_it = samples.begin() + i + kNumSamplesPerSymbol;
             vector<double>::const_iterator second_symbol_end_it = samples.begin() + i + 2 * kNumSamplesPerSymbol;
             complex<double> second_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(second_symbol_begin_it, second_symbol_end_it);
 
             if (sampling_frequency_ % carrier_frequency_) {
-//                const double kNumPeriodsPerSymbol = static_cast<double>(carrier_frequency_) / symbol_speed_; // количество периодов колебания за один символ
-//                string digits_after_point = to_string(kNumPeriodsPerSymbol);
-//                uint32_t point_pos = digits_after_point.find('.');
-//                digits_after_point = digits_after_point.substr(point_pos + 1);
-//                cout << digits_after_point << endl;
-
                 first_symbol_IQ_components = Decorrelation(first_symbol_IQ_components);
                 second_symbol_IQ_components = Decorrelation(second_symbol_IQ_components);
             }
