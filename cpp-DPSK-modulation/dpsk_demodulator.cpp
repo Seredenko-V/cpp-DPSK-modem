@@ -90,13 +90,15 @@ namespace dpsk_demod {
 //        ofstream only_cos("only_cos.txt"s);
 //        ofstream only_sin("only_sin.txt"s);
         for (uint16_t sample_id = 0; sample_id < kNumSamplesInSymbol; ++sample_id) {
-            cos_oscillation_[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * time + phase_);
+            cos_oscillation_[sample_id] = amplitude_ * cos(kCyclicFrequencyCoefficient * sample_id/*time*/ + phase_);
 //            only_cos << cos_oscillation_[sample_id] << endl;
-            sin_oscillation_[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * time + phase_);
+            sin_oscillation_[sample_id] = amplitude_ * sin(kCyclicFrequencyCoefficient * sample_id/*time*/ + phase_);
 //            only_sin << sin_oscillation_[sample_id] << endl;
             ++time;
         }
         time = time % (num_symbols_ * kNumSamplesInSymbol);
+        phase_ += kCyclicFrequencyCoefficient * kNumSamplesInSymbol;
+        math::PhaseToRangeFrom0To2PI(phase_);
     }
 
     void DPSKDemodulator::FillSymbolsBounds() {
@@ -185,10 +187,10 @@ namespace dpsk_demod {
         vector<uint32_t> demodulated_symbols(samples.size() / kNumSamplesPerSymbol - 1);
 
         for (size_t i = 0; i < samples.size() - kNumSamplesPerSymbol; i += kNumSamplesPerSymbol) {
-            if (sampling_frequency_ % carrier_frequency_) {
-                num_symbols_ = 2;
-                FillCosAndSinOscillation();
-            }
+//            if (sampling_frequency_ % carrier_frequency_) {
+//                num_symbols_ = 2;
+//                FillCosAndSinOscillation();
+//            }
             vector<double>::const_iterator first_symbol_begin_it = samples.begin() + i;
             vector<double>::const_iterator first_symbol_end_it = samples.begin() + i + kNumSamplesPerSymbol;
             complex<double> first_symbol_IQ_components = ExtractInPhaseAndQuadratureComponentsSymbol(first_symbol_begin_it, first_symbol_end_it);
