@@ -73,22 +73,6 @@ uint32_t SignalParameters::GetCarrierFrequency() const noexcept {
     return carrier_frequency_;
 }
 
-SignalParameters& SignalParameters::SetIntermediateFrequency(int intermediate_frequency) {
-    if (intermediate_frequency <= 0) {
-        throw invalid_argument("Value "s + to_string(intermediate_frequency) + " of intermediate frequency isn't positive"s);
-    }
-    if (4 * static_cast<uint32_t>(intermediate_frequency) > sampling_frequency_) {
-        throw invalid_argument("4 * "s + to_string(intermediate_frequency) + " > "s + to_string(sampling_frequency_) + ". Nyquist's theorem does not hold"s);
-    }
-    intermediate_frequency_ = intermediate_frequency;
-    intermediate_cyclic_frequency_ = 2 * M_PI * intermediate_frequency_;
-    return *this;
-}
-
-uint32_t SignalParameters::GetIntermediateFrequency() const noexcept {
-    return intermediate_frequency_;
-}
-
 uint32_t SignalParameters::GetSamplingFrequency() const noexcept {
     return sampling_frequency_;
 }

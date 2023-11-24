@@ -31,12 +31,6 @@ public:
     /// Получить значение несущей частоты. Сложность: O(1)
     uint32_t GetCarrierFrequency() const noexcept;
 
-    /// Установить значение промежуточной частоты (на случай не кратности частоты дискретизации несущей). Сложность: O(1)
-    SignalParameters& SetIntermediateFrequency(int intermediate_frequency);
-
-    /// Получить значение промежуточной частоты. Сложность: O(1)
-    uint32_t GetIntermediateFrequency() const noexcept;
-
     /// Получить значение частоты дискретизации. Сложность: O(1)
     uint32_t GetSamplingFrequency() const noexcept;
 
@@ -54,15 +48,11 @@ protected:
     double amplitude_ = 1.; // амплитуда колебания, В
     double phase_ = 0.; // текущая фаза, радианы
     double phase_shift_ = 0; // дополнительный фазовый сдвиг, радианы
+    uint32_t symbol_speed_ = 0u; // символьная скорость [символ/с]
 
     uint32_t carrier_frequency_ = 0u; // несущая частота, Гц
     double carrier_cyclic_frequency_ = 0.; // циклическая несущая частота, радианы
 
     uint32_t sampling_frequency_ = 0u; // частота дискретизации, Гц
     double time_step_between_samples_ = 0.; // шаг дискретизации во временной области, с
-
-    uint32_t intermediate_frequency_ = 0u; // промежуточная частота, Гц
-    double intermediate_cyclic_frequency_ = 0.; // циклическая промежуточная частота, радианы
-
-    uint32_t symbol_speed_ = 0u; // символьная скорость [символ/с]
 };

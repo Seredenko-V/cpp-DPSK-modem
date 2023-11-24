@@ -429,7 +429,7 @@ namespace dpsk_mod {
             constexpr uint32_t kIntermediateFrequency = kSymbolSpeed;
             DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
 
-            modulator.SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kIntermediateFrequency);
+            modulator.SetIntermediateFrequency(kIntermediateFrequency).SetCarrierFrequency(kCarrierFrequency);
             {
                 const string kNameFile = "pos2_intermediate.txt"s;
                 modulator.SetPositionality(2).SetPhase(0);
@@ -486,7 +486,7 @@ namespace dpsk_mod {
                 CheckModulationMode(bits, modulator, kNamesPrefixOfBenchmarkFiles + kNameFile, kNamesPrefixOfOutputFiles + kNameFile);
             }
             // с использованием промежуточной частоты
-            modulator.SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kIntermediateFrequency);
+            modulator.SetIntermediateFrequency(kIntermediateFrequency).SetCarrierFrequency(kCarrierFrequency);
             {
                 const string kNameFile = "pos2_shift_90_intermediate.txt"s;
                 modulator.SetPositionality(2).SetPhase(90);

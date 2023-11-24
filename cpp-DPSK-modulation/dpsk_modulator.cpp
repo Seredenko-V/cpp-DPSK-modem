@@ -50,6 +50,22 @@ namespace dpsk_mod {
         return *this;
     }
 
+    DPSKModulator& DPSKModulator::SetIntermediateFrequency(int intermediate_frequency) {
+        if (intermediate_frequency <= 0) {
+            throw invalid_argument("Value "s + to_string(intermediate_frequency) + " of intermediate frequency isn't positive"s);
+        }
+        if (4 * static_cast<uint32_t>(intermediate_frequency) > sampling_frequency_) {
+            throw invalid_argument("4 * "s + to_string(intermediate_frequency) + " > "s + to_string(sampling_frequency_) + ". Nyquist's theorem does not hold"s);
+        }
+        intermediate_frequency_ = intermediate_frequency;
+        intermediate_cyclic_frequency_ = 2 * M_PI * intermediate_frequency_;
+        return *this;
+    }
+
+    uint32_t DPSKModulator::GetIntermediateFrequency() const noexcept {
+        return intermediate_frequency_;
+    }
+
     void DPSKModulator::FillPhaseShifts() {
         phase_shifts_.clear();
         static constexpr double kTotalAngle = 2 * M_PI; // радиан на окружности
