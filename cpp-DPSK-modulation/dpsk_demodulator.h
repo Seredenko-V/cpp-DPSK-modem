@@ -10,8 +10,8 @@
 namespace dpsk_demod {
     class DPSKDemodulator : public SignalParameters {
     public:
-        // По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
-        DPSKDemodulator(int positionality = 2);
+        /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
+        DPSKDemodulator(int sampling_frequency, int symbol_speed, int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
         DPSKDemodulator& SetPositionality(int positionality) override;

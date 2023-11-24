@@ -311,7 +311,9 @@ namespace dpsk_mod {
 
         void TestDefaultConstructor() {
             // по умолчанию используется двухпозиционная ОФМ
-            DPSKModulator modulator;
+            constexpr uint32_t kSamplingFrequency = 10'000u;
+            constexpr uint32_t kSymbolSpeed = 1'000u;
+            DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
             assert(modulator.GetPositionality() == 2);
             map<uint16_t, double> expected_phase_shifts{{0, 0}, {1, M_PI}};
             assert(IsSameMapWithDouble(expected_phase_shifts, modulator.GetPhaseShifts()));
@@ -319,7 +321,9 @@ namespace dpsk_mod {
         }
 
         void TestSetPositionality() {
-            DPSKModulator modulator(2);
+            constexpr uint32_t kSamplingFrequency = 10'000u;
+            constexpr uint32_t kSymbolSpeed = 1'000u;
+            DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed, 2);
             {
 
                 modulator.SetPositionality(4);
@@ -350,7 +354,9 @@ namespace dpsk_mod {
         }
 
         void TestSetPhaseShift() {
-            DPSKModulator modulator;
+            constexpr uint32_t kSamplingFrequency = 10'000u;
+            constexpr uint32_t kSymbolSpeed = 1'000u;
+            DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
             { // сдвиг ОФМ-2 на 90 градусов
                 modulator.SetPhaseShift(M_PI / 2);
                 map<uint16_t, double> expected_phase_shifts{
@@ -385,10 +391,11 @@ namespace dpsk_mod {
         const string kNamesPrefixOfOutputFiles = "real_"s;
 
         void TestClassicalModulation() {
-            DPSKModulator modulator;
-            constexpr uint32_t kCarrierFrequency = 1200u;
             constexpr uint32_t kSamplingFrequency = 19'200u;
-            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
+            constexpr uint32_t kCarrierFrequency = 1200u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
+            DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
+            modulator.SetCarrierFrequency(kCarrierFrequency);
             {
                 const string kNameFile = "pos2.txt"s;
                 modulator.SetPositionality(2).SetPhase(0);
@@ -416,11 +423,13 @@ namespace dpsk_mod {
 
 
         void TestModulationWithUseIntermediateFreq() {
-            DPSKModulator modulator;
-            constexpr uint32_t kCarrierFrequency = 1800u;
-            constexpr uint32_t kIntermediateFrequency = 1200u;
             constexpr uint32_t kSamplingFrequency = 19'200u;
-            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kIntermediateFrequency);
+            constexpr uint32_t kCarrierFrequency = 1800u;
+            constexpr uint32_t kSymbolSpeed = 1'200u;
+            constexpr uint32_t kIntermediateFrequency = kSymbolSpeed;
+            DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
+
+            modulator.SetCarrierFrequency(kCarrierFrequency).SetIntermediateFrequency(kIntermediateFrequency);
             {
                 const string kNameFile = "pos2_intermediate.txt"s;
                 modulator.SetPositionality(2).SetPhase(0);
@@ -447,12 +456,14 @@ namespace dpsk_mod {
         }
 
         void TestConstellationShift() {
-            DPSKModulator modulator;
-            constexpr uint32_t kCarrierFrequency = 1800u;
-            constexpr uint32_t kIntermediateFrequency = 1200u;
             constexpr uint32_t kSamplingFrequency = 19'200u;
+            constexpr uint32_t kCarrierFrequency = 1800u;
+            constexpr uint32_t kSymbolSpeed = 1'200u;
+            constexpr uint32_t kIntermediateFrequency = kSymbolSpeed;
+            DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
+
             // без использования промежуточной частоты
-            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kIntermediateFrequency);
+            modulator.SetCarrierFrequency(kIntermediateFrequency);
             {
                 const string kNameFile = "pos2_shift_90.txt"s;
                 modulator.SetPositionality(2).SetPhase(90);
@@ -514,12 +525,13 @@ namespace dpsk_demod {
         }
 
         void TestExtractInPhaseAndQuadratureComponentsSymbol() {
-            static constexpr uint32_t kSamplingFrequency = 50'000u;
-            static constexpr uint32_t kCarrierFrequency = 1'000u;
-            dpsk_mod::DPSKModulator modulator;
-            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
-            DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(kSamplingFrequency).SetSymbolSpeed(kCarrierFrequency).SetCarrierFrequency(kCarrierFrequency);
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kCarrierFrequency = 1'000u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
+            dpsk_mod::DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
+            modulator.SetCarrierFrequency(kCarrierFrequency);
+            DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed);
+            demodulator.SetCarrierFrequency(kCarrierFrequency);
             modulator.SetModulationFunction(dpsk_mod::Sin);
             // ОФМ-2 без сдвига созвездия
             {
@@ -632,8 +644,11 @@ namespace dpsk_demod {
 
         void TestExtractPhaseValue() {
             using namespace math;
-            DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(50'000u).SetSymbolSpeed(1000u).SetCarrierFrequency(1000u);
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kCarrierFrequency = 1'000u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
+            DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed);
+            demodulator.SetCarrierFrequency(kCarrierFrequency);
             // ОФМ-4
             assert(IsSameDouble(demodulator.ExtractPhaseValue({0.5, 0}), 0));
             assert(IsSameDouble(demodulator.ExtractPhaseValue({-0.5, 0}), M_PI));
@@ -648,15 +663,18 @@ namespace dpsk_demod {
         }
 
         void TestFillSymbolsBounds() {
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kCarrierFrequency = 1'000u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
             { // ОФМ-2
-                DPSKDemodulator demodulator(2);
+                DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed, 2);
                 vector<double> expected_bounds{
                     M_PI / 2,
                     3 * M_PI / 2
                 };
                 assert(math::IsSameContainersWithDouble(expected_bounds, demodulator.GetBoundsSymbols()));
             }{ // ОФМ-8
-                DPSKDemodulator demodulator(8);
+                DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed, 8);
                 vector<double> expected_bounds{
                     M_PI / 8,
                     3 * M_PI / 8,
@@ -673,12 +691,14 @@ namespace dpsk_demod {
         }
 
         void TestFillSymbolsSequenceOnCircle() {
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kSymbolSpeed = 1'000u;
             { // ОФМ-2
-                DPSKDemodulator demodulator(2);
+                DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed, 2);
                 vector<uint32_t> expected_symbols{0, 1};
                 assert(expected_symbols == demodulator.GetSymbolsSequenceOnCircle());
             }{ // ОФМ-8
-                DPSKDemodulator demodulator(8);
+                DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed, 8);
                 vector<uint32_t> expected_symbols{0,1,3,2,6,7,5,4};
                 assert(expected_symbols == demodulator.GetSymbolsSequenceOnCircle());
             }
@@ -686,8 +706,10 @@ namespace dpsk_demod {
         }
 
         void TestDefineSymbol() {
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kSymbolSpeed = 1'000u;
             { // ОФМ-2
-                DPSKDemodulator demodulator(2);
+                DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed, 2);
                 assert(demodulator.DefineSymbol(0) == 0);
                 assert(demodulator.DefineSymbol(M_PI / 4) == 0);
                 assert(demodulator.DefineSymbol(M_PI / 2) == 1); // на границе в пользу следующего символа
@@ -695,7 +717,7 @@ namespace dpsk_demod {
                 assert(demodulator.DefineSymbol(3 * M_PI / 4) == 1);
                 assert(demodulator.DefineSymbol(3 * M_PI / 2) == 0); // на границе в пользу следующего символа
             }{ // ОФМ-8
-                DPSKDemodulator demodulator(8);
+                DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed, 8);
                 assert(demodulator.DefineSymbol(0) == 0);
                 assert(demodulator.DefineSymbol(3 * M_PI / 16) == 1);
                 assert(demodulator.DefineSymbol(24 * M_PI / 16) == 5);
@@ -706,10 +728,13 @@ namespace dpsk_demod {
         }
 
         void TestDemodulation() {
-            dpsk_mod::DPSKModulator modulator;
-            modulator.SetSamplingFrequency(50'000u).SetCarrierFrequency(1000u);
-            DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(50'000u).SetSymbolSpeed(1000u).SetCarrierFrequency(1000u);
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kCarrierFrequency = 1'000u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
+            dpsk_mod::DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
+            modulator.SetCarrierFrequency(kCarrierFrequency);
+            DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed);
+            demodulator.SetCarrierFrequency(kCarrierFrequency);
             { // ОФМ-2 без сдвига созвездия
                 vector<bool> bits{0,1,1,1,0,1};
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, 1);
@@ -753,7 +778,9 @@ namespace dpsk_demod {
         }
 
         void TestSetPhaseShift() {
-            DPSKDemodulator demodulator;
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kSymbolSpeed = 1'000u;
+            DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed);
             { // сдвиг ОФМ-2 на 90 градусов
                 demodulator.SetPhaseShift(M_PI / 2);
                 vector<double> expected_phase_bounds{
@@ -775,12 +802,13 @@ namespace dpsk_demod {
         }
 
         void TestDemodulationWithPhaseShift() {
-            static constexpr uint32_t kSamplingFrequency = 50'000u;
-            static constexpr uint32_t kCarrierFrequency = 1'000u;
-            dpsk_mod::DPSKModulator modulator;
-            modulator.SetSamplingFrequency(kSamplingFrequency).SetCarrierFrequency(kCarrierFrequency);
-            DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(kSamplingFrequency).SetSymbolSpeed(kCarrierFrequency).SetCarrierFrequency(kCarrierFrequency);
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kCarrierFrequency = 1'000u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
+            dpsk_mod::DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
+            modulator.SetCarrierFrequency(kCarrierFrequency);
+            DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed);
+            demodulator.SetCarrierFrequency(kCarrierFrequency);
             { // ОФМ-2
                 modulator.SetPhaseShift(M_PI / 2);
                 demodulator.SetPhaseShift(M_PI / 2);
@@ -802,10 +830,10 @@ namespace dpsk_demod {
         }
 
         void CheckExchange(uint32_t sampling_frequency, uint32_t symbol_speed, uint32_t carrier_frequency) {
-            dpsk_mod::DPSKModulator modulator;
-            modulator.SetSamplingFrequency(sampling_frequency).SetCarrierFrequency(carrier_frequency).SetIntermediateFrequency(symbol_speed);
-            DPSKDemodulator demodulator;
-            demodulator.SetSamplingFrequency(sampling_frequency).SetSymbolSpeed(symbol_speed).SetCarrierFrequency(carrier_frequency);
+            dpsk_mod::DPSKModulator modulator(sampling_frequency, symbol_speed);
+            modulator.SetIntermediateFrequency(symbol_speed).SetCarrierFrequency(carrier_frequency);
+            DPSKDemodulator demodulator(sampling_frequency, symbol_speed);
+            demodulator.SetCarrierFrequency(carrier_frequency);
             int num_bit_per_symbol = 1;
             { // ОФМ-2 без сдвига созвездия
                 vector<bool> bits{0,1,1,1,0,1};

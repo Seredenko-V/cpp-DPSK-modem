@@ -23,7 +23,7 @@ namespace dpsk_mod {
     class DPSKModulator : public SignalParameters {
     public:
         /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
-        DPSKModulator(int positionality = 2);
+        DPSKModulator(int sampling_frequency, int symbol_speed, int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
         DPSKModulator& SetPositionality(int positionality) override;

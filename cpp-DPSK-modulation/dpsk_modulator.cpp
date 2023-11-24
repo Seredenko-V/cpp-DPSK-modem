@@ -14,7 +14,8 @@
 using namespace std;
 
 namespace dpsk_mod {
-    DPSKModulator::DPSKModulator(int positionality) {
+    DPSKModulator::DPSKModulator(int sampling_frequency, int symbol_speed, int positionality)
+        : SignalParameters(sampling_frequency, symbol_speed) {
         SetPositionality(positionality);
     }
 

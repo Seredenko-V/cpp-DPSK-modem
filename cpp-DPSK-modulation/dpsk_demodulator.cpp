@@ -13,14 +13,17 @@
 using namespace std;
 
 namespace dpsk_demod {
-    DPSKDemodulator::DPSKDemodulator(int positionality) {
+    DPSKDemodulator::DPSKDemodulator(int sampling_frequency, int symbol_speed, int positionality)
+        : SignalParameters(sampling_frequency, symbol_speed) {
         SetPositionality(positionality);
     }
 
     DPSKDemodulator& DPSKDemodulator::SetPositionality(int positionality) {
-        SignalParameters::SetPositionality(positionality);
-        FillSymbolsBounds();
-        FillSymbolsSequenceOnCircle();
+        if (positionality_ != positionality) {
+            SignalParameters::SetPositionality(positionality);
+            FillSymbolsBounds();
+            FillSymbolsSequenceOnCircle();
+        }
         return *this;
     }
 

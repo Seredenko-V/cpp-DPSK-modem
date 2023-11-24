@@ -3,7 +3,9 @@
 #include <cstdint>
 
 class SignalParameters {
-public:    
+public:
+    SignalParameters(int sampling_frequency, int symbol_speed);
+
     /// Установить позиционность модуляции. Сложность: O(1)
     virtual SignalParameters& SetPositionality(int positionality);
 
@@ -35,9 +37,6 @@ public:
     /// Получить значение промежуточной частоты. Сложность: O(1)
     uint32_t GetIntermediateFrequency() const noexcept;
 
-    /// Установить значение частоты дискретизации. Сложность: O(1)
-    SignalParameters& SetSamplingFrequency(int sampling_frequency);
-
     /// Получить значение частоты дискретизации. Сложность: O(1)
     uint32_t GetSamplingFrequency() const noexcept;
 
@@ -46,9 +45,6 @@ public:
 
     /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(1)
     double GetPhaseShift() const noexcept;
-
-    /// Установить значение символьной скорости (кол-во символов / секунда). Сложность: O(1)
-    virtual SignalParameters& SetSymbolSpeed(int new_symbol_speed);
 
     /// Получить значение символьной скорости. Сложность: O(1)
     uint32_t GetSymbolSpeed() const noexcept;
@@ -68,5 +64,5 @@ protected:
     uint32_t intermediate_frequency_ = 0u; // промежуточная частота, Гц
     double intermediate_cyclic_frequency_ = 0.; // циклическая промежуточная частота, радианы
 
-    uint32_t symbol_speed_ = 0u; // символьная скорость
+    uint32_t symbol_speed_ = 0u; // символьная скорость [символ/с]
 };
