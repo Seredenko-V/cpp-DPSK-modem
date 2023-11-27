@@ -180,7 +180,7 @@ template< class TYPE = int >
       void deallocate
       (
         unsigned rowNumber,
-        unsigned columnNumber
+        [[gnu::unused]] unsigned columnNumber
       )
       {
         // Free memory used for storing order (if there is any).

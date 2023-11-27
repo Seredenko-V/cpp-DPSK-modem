@@ -1,7 +1,7 @@
-#include "math_operations.h"
-#include "gray_code.h"
-#include "dpsk_modulator.h"
-#include "dpsk_demodulator.h"
+#include <math_operations.h>
+#include <gray_code.h>
+#include <dpsk_modulator.h>
+#include <dpsk_demodulator.h>
 
 using namespace std;
 
