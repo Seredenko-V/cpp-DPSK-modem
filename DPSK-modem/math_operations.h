@@ -7,9 +7,6 @@
 #include <iomanip>
 
 namespace math {
-    template <typename Type>
-    using Matrix = std::vector<std::vector<Type>>;
-
     /// Является ли число степенью двойки: N^2 = value. Сложность: O(1)
     bool IsPowerOfTwo(int value) noexcept;
 
@@ -25,10 +22,10 @@ namespace math {
     /// Если bits.size() не кратен num_bits_per_symbol, то дописываются нули слева.
     std::vector<uint32_t> ConvertationBitsToDecValues(const std::vector<bool>& bits, int32_t num_bits_per_symbol);
 
-    /// Сравнение двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
+    /// Проверка на равенство двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
     bool IsSameDouble(double lhs, double rhs, double delta = 1e-6) noexcept;
 
-    /// Сравнение двух контейнеров с double. Сложность: O(1)
+    /// Проверка на равенство двух контейнеров с double. Сложность: O(N)
     template <typename Container>
     bool IsSameContainersWithDouble(const Container& lhs, const Container& rhs, double delta = 1e-6) {
         if (lhs.size() != rhs.size()) {
@@ -45,7 +42,7 @@ namespace math {
     /// Перевод углов в радианы. Сложность: O(1)
     double DegreesToRadians(double angle_degree) noexcept;
 
-    /// Перенос значение фазы в пределы [0, 2 * M_PI). Сложность: O(phase / (2 * M_PI))
+    /// Перенос значения фазы в пределы [0, 2 * M_PI). Сложность: O(phase / (2 * M_PI))
     void PhaseToRangeFrom0To2PI(double& phase) noexcept;
 
     /// Кратное число должно быть больше или меньше некоторого value
