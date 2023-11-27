@@ -68,7 +68,7 @@ namespace dpsk_mod {
     private:
         uint32_t intermediate_frequency_ = 0u; // промежуточная частота, Гц
         double intermediate_cyclic_frequency_ = 0.; // циклическая промежуточная частота, радианы
-        std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги в градусах, соответствующие символу
+        std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги в радианах, соответствующие символу
         std::function<double(double)> mod_function_ = Sin;
         std::function<double(double)> ortogonal_mod_function_ = Cos;
     };
