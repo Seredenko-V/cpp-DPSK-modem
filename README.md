@@ -4,7 +4,7 @@
 с [относительной фазовой модуляцией](https://vunivere.ru/work63579/page2) (ОФМ) для позиционностей, являющихся степенью двойки.
 Сигнальное созвездие заполняется в соответствии с [кодом Грея](https://zvondozvon.ru/radiosvyaz/kod-greya?ysclid=lpgoc3vcky544727201).
 
-![Gray-4-8-PSK](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/main/images/Gray-4-8-PSK.jpg?token=GHSAT0AAAAAACG5T7PNIRJWWXH4EY5EUB4OZLFZHDQ "Gray-4-8-PSK")
+![Gray-4-8-PSK](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/main/images/Gray-4-8-PSK.jpg?token=GHSAT0AAAAAACK4KXK6MPHJHQPYSG27W6YSZLFZPYQ "Gray-4-8-PSK")
 
 * Решена проблема дублирования кода, связанная с реализацией каждой конкретной позиционности ОФМ.
 * Решена проблема некратности несущей частоты ($`Fc`$) частоте дискретизации ($`Fs`$).
@@ -321,4 +321,4 @@ target_link_libraries(UserDPSKModem DPSKModem)
 Примеры использования можно найти в тестах библиотеки, в файле `DPSK-modem/tests.cpp`.
 
 ## UML-диаграмма
-![solution-UML](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/1a63a023b7970e45daa3cd07324d297dcdf24564/images/solution-UML.svg?token=AWESMYYHRTP7ZAL66DF4Q5DFMXE24 "solution-UML")
+![solution-UML](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/9cb571169eec6dedfff09001f88eb57c41461690/images/solution-UML.svg?token=AWESMY3323R4NAVYBJ3G3HTFMXF6S "solution-UML")
