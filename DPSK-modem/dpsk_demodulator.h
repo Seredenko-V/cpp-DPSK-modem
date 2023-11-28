@@ -45,7 +45,7 @@ namespace dpsk_demod {
         const Matrix<double>& GetDecorrelationMatrix() const noexcept;
 
     private:
-        /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность: O(sampling_frequency / carrier_frequency)
+        /// Сгенерировать синфазную и квадратурную составляющие при заданных параметрах. Сложность: O(sampling_frequency / carrier_frequency)
         void FillCosAndSinOscillation();
 
         /// Заполнить границы (сектора) символов на огружности. Сложность: O(positionality)

@@ -138,6 +138,7 @@ namespace dpsk_demod {
     DPSKDemodulator& DPSKDemodulator::SetPhaseShift(double phase_shift) {
         SignalParameters::SetPhaseShift(phase_shift);
         FillSymbolsBounds();
+        FillSymbolsSequenceOnCircle();
         return *this;
     }
 
