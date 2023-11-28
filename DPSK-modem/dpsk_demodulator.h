@@ -10,8 +10,8 @@
 namespace dpsk_demod {
     class DPSKDemodulator : public SignalParameters {
     public:
-        // По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
-        DPSKDemodulator(int positionality = 2);
+        /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
+        DPSKDemodulator(int sampling_frequency, int symbol_speed, int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
         DPSKDemodulator& SetPositionality(int positionality) override;
@@ -45,7 +45,7 @@ namespace dpsk_demod {
         const Matrix<double>& GetDecorrelationMatrix() const noexcept;
 
     private:
-        /// Сгенерировать один период косинуса и синуса при заданных параметрах. Сложность: O(sampling_frequency / carrier_frequency)
+        /// Сгенерировать синфазную и квадратурную составляющие при заданных параметрах. Сложность: O(sampling_frequency / carrier_frequency)
         void FillCosAndSinOscillation();
 
         /// Заполнить границы (сектора) символов на огружности. Сложность: O(positionality)

@@ -23,7 +23,7 @@ namespace dpsk_mod {
     class DPSKModulator : public SignalParameters {
     public:
         /// По умолчанию используется двухпозиционная ОФМ. Сложность: O(2 * positionality * log2(positionality))
-        DPSKModulator(int positionality = 2);
+        DPSKModulator(int sampling_frequency, int symbol_speed, int positionality = 2);
 
         /// Установить позиционность модуляции. Сложность: O(2 * (positionality * log2(positionality)))
         DPSKModulator& SetPositionality(int positionality) override;
@@ -36,6 +36,12 @@ namespace dpsk_mod {
 
         /// Установить значение дополнительного фазового сдвига в РАДИАНАХ. Сложность: O(positionality)
         DPSKModulator& SetPhaseShift(double phase_shift) override;
+
+        /// Установить значение промежуточной частоты (на случай не кратности частоты дискретизации несущей). Сложность: O(1)
+        DPSKModulator& SetIntermediateFrequency(int intermediate_frequency);
+
+        /// Получить значение промежуточной частоты. Сложность: O(1)
+        uint32_t GetIntermediateFrequency() const noexcept;
 
         /// Модуляция последовательности бит.
         /// Сложность: O(N) - если опорный символ содержится в bits
@@ -60,7 +66,9 @@ namespace dpsk_mod {
         void ModulationWithUseIntermediateFreq(const std::vector<uint32_t>& symbols, std::vector<double>& modulated_signal, uint16_t num_samples_in_symbol);
 
     private:
-        std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги в градусах, соответствующие символу
+        uint32_t intermediate_frequency_ = 0u; // промежуточная частота, Гц
+        double intermediate_cyclic_frequency_ = 0.; // циклическая промежуточная частота, радианы
+        std::map<uint16_t, double>  phase_shifts_; // фазовые сдвиги в радианах, соответствующие символу
         std::function<double(double)> mod_function_ = Sin;
         std::function<double(double)> ortogonal_mod_function_ = Cos;
     };

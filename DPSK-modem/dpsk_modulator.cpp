@@ -14,7 +14,8 @@
 using namespace std;
 
 namespace dpsk_mod {
-    DPSKModulator::DPSKModulator(int positionality) {
+    DPSKModulator::DPSKModulator(int sampling_frequency, int symbol_speed, int positionality)
+        : SignalParameters(sampling_frequency, symbol_speed) {
         SetPositionality(positionality);
     }
 
@@ -49,15 +50,31 @@ namespace dpsk_mod {
         return *this;
     }
 
+    DPSKModulator& DPSKModulator::SetIntermediateFrequency(int intermediate_frequency) {
+        if (intermediate_frequency <= 0) {
+            throw invalid_argument("Value "s + to_string(intermediate_frequency) + " of intermediate frequency isn't positive"s);
+        }
+        if (4 * static_cast<uint32_t>(intermediate_frequency) > sampling_frequency_) {
+            throw invalid_argument("4 * "s + to_string(intermediate_frequency) + " > "s + to_string(sampling_frequency_) + ". Nyquist's theorem does not hold"s);
+        }
+        intermediate_frequency_ = intermediate_frequency;
+        intermediate_cyclic_frequency_ = 2 * M_PI * intermediate_frequency_;
+        return *this;
+    }
+
+    uint32_t DPSKModulator::GetIntermediateFrequency() const noexcept {
+        return intermediate_frequency_;
+    }
+
     void DPSKModulator::FillPhaseShifts() {
         phase_shifts_.clear();
-        static constexpr double kTotalAngle = 360; // количество градусов на окружности
+        static constexpr double kTotalAngle = 2 * M_PI; // радиан на окружности
         const double kStepPhase = kTotalAngle / positionality_;
         vector<vector<bool>> grey_codes = gray_code::MakeGrayCodes(positionality_);
         double current_phase = 0;
         for (uint16_t i = 0; i < positionality_; ++i) {
             assert(current_phase < kTotalAngle);
-            phase_shifts_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase + (phase_shift_ * 180 / M_PI));
+            phase_shifts_.emplace(math::ConvertationBinToDec(grey_codes[i]), current_phase + phase_shift_);
             current_phase += kStepPhase;
         }
     }
@@ -77,7 +94,7 @@ namespace dpsk_mod {
         const double kCyclicFrequencyCoefficient = carrier_cyclic_frequency_ * time_step_between_samples_; // коэффициент, не изменяющийся в процессе дискретизации
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
-            phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
+            phase_ += phase_shifts_.find(symbols[symbol_id])->second;
             math::PhaseToRangeFrom0To2PI(phase_);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
 //                modulated_signal[sample_id + symbol_id * num_samples_in_symbol] = amplitude_ * mod_function_(kCyclicFrequencyCoefficient * sample_id + phase_);
@@ -93,7 +110,7 @@ namespace dpsk_mod {
         const double kIntermediateCyclicFrequencyCoefficient = intermediate_cyclic_frequency_ * time_step_between_samples_;
 
         for (size_t symbol_id = 0; symbol_id < symbols.size(); ++symbol_id) {
-            phase_ += math::DegreesToRadians(phase_shifts_.find(symbols[symbol_id])->second);
+            phase_ += phase_shifts_.find(symbols[symbol_id])->second;
             math::PhaseToRangeFrom0To2PI(phase_);
             for (uint16_t sample_id = 0; sample_id < num_samples_in_symbol; ++sample_id) {
                 size_t time_difference_step = sample_id + symbol_id * num_samples_in_symbol;
