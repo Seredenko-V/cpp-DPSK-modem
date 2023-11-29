@@ -72,7 +72,7 @@ namespace dpsk_mod {
         /// Модуляция с изпользованием промежуточной частоты. Частота дискретизации НЕ кратна несущей частоте. Сложность: O(N)
         void ModulationWithUseIntermediateFreq(const std::vector<uint32_t>& symbols, std::vector<double>& modulated_signal, uint16_t num_samples_in_symbol);
 
-        /// Определить частоту используемой несущей частоты. Сложность: O(1)
+        /// Определить значение используемой несущей частоты. Сложность: O(1)
         uint32_t DetermineUsedCarrierFreq() const;
 
         /// Конвертировать биты в символы в соответствии с позиционностью ОФМ и наличием опорного символа в последовательности бит. Сложность: O(N)
