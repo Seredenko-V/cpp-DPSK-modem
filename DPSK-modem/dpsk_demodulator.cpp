@@ -204,4 +204,14 @@ namespace dpsk_demod {
         }
         return demodulated_symbols;
     }
+
+    vector<uint32_t> DPSKDemodulator::Demodulation(const vector<complex<double>>& IQ_components) const {
+        vector<uint32_t> demodulated_symbols(IQ_components.size() - 1);
+        for (size_t i = 0; i < demodulated_symbols.size(); ++i) {
+            double phase_defference = ExtractPhaseValue(IQ_components[i + 1]) - ExtractPhaseValue(IQ_components[i]);
+            math::PhaseToRangeFrom0To2PI(phase_defference);
+            demodulated_symbols[i] = DefineSymbol(phase_defference);
+        }
+        return demodulated_symbols;
+    }
 } // namespace dpsk_demod
