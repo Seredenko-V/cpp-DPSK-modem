@@ -29,6 +29,9 @@ namespace dpsk_demod {
         /// Демодуляция последовательности отсчетов. Сложность: O(N)
         std::vector<uint32_t> Demodulation(const std::vector<double>& samples);
 
+        /// Демодуляция последовательности символов в комплексной форме. Сложность: O(N)
+        std::vector<uint32_t> Demodulation(const std::vector<std::complex<double>>& IQ_components) const;
+
         /// Получить значения границ диапазонов разностей фаз между символами. Сложность: O(1)
         const std::vector<double>& GetBoundsSymbols() const noexcept;
 
@@ -79,6 +82,7 @@ namespace dpsk_demod {
         void TestSetPhaseShift();
         void TestDemodulationWithPhaseShift();
         void TestDemodulationWithDecorrelationMatrix();
+        void TestDemodulationIQComponents();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod

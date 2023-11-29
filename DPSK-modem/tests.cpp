@@ -944,6 +944,51 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestDemodulationWithDecorrelationMatrix has passed"s << endl;
         }
 
+        void TestDemodulationIQComponents() {
+            constexpr uint32_t kSamplingFrequency = 50'000u;
+            constexpr uint32_t kCarrierFrequency = 1'000u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
+            DPSKDemodulator demodulator(kSamplingFrequency, kSymbolSpeed);
+            demodulator.SetCarrierFrequency(kCarrierFrequency);
+            {
+                demodulator.SetPositionality(2).SetPhase(0);
+                vector<complex<double>> IQ_components {
+                    {cos(0), sin(0)}, // опорный
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(0), sin(0)},
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(0), sin(0)},
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(M_PI), sin(M_PI)}
+                };
+                vector<uint32_t> expected_symbols{1,1,1,1,1,0};
+                assert(expected_symbols == demodulator.Demodulation(IQ_components));
+            }{
+                demodulator.SetPositionality(4).SetPhase(0);
+                vector<complex<double>> IQ_components {
+                    {cos(0), sin(0)}, // опорный
+                    {cos(M_PI / 2), sin(M_PI / 2)},
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(0), sin(0)}
+                };
+                vector<uint32_t> expected_symbols{1,1,0,3};
+                assert(expected_symbols == demodulator.Demodulation(IQ_components));
+            }{
+                demodulator.SetPositionality(8).SetPhase(0);
+                vector<complex<double>> IQ_components {
+                    {cos(0), sin(0)}, // опорный
+                    {cos(3 * M_PI / 2), sin(3 * M_PI / 2)},
+                    {cos(5 * M_PI / 4), sin(5 * M_PI / 4)},
+                    {cos(M_PI / 2), sin(M_PI / 2)},
+                    {cos(M_PI / 2), sin(M_PI / 2)}
+                };
+                vector<uint32_t> expected_symbols{5,4,7,0};
+                assert(expected_symbols == demodulator.Demodulation(IQ_components));
+            }
+            cerr << "dpsk_demod::TestDemodulationIQComponents has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
             TestExtractPhaseValue();
@@ -954,6 +999,7 @@ namespace dpsk_demod {
             TestSetPhaseShift();
             TestDemodulationWithPhaseShift();
             TestDemodulationWithDecorrelationMatrix();
+            TestDemodulationIQComponents();
             cerr << ">>> dpsk_demod::AllTests has passed <<<"s << endl;
         }
     } // namespace tests
