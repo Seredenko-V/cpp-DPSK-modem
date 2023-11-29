@@ -7,6 +7,7 @@
 #include <complex>
 #include <functional>
 #include <cmath>
+#include <complex>
 
 namespace dpsk_mod {
     static std::function<double(double)> Sin = (double(*)(double))&std::sin;
@@ -52,6 +53,12 @@ namespace dpsk_mod {
         /// Модуляция последовательности бит с указанием нужной позиционности. Сложность: O(positionality + N)
         std::vector<double> Modulation(const std::vector<bool>& bits, int positionality, PresencePivotSymbol is_presence = PresencePivotSymbol::WITHOUT_PIVOT);
 
+        /// Модуляция, представляющая каждый символ в виде комплексного числа.
+        /// Комплесные числа содержат синфазную и квадратурную составляющие передаваемых символов.
+        /// Сложность: O(N) - если опорный символ содержится в bits
+        /// Сложность: O(2*N) - если опорный символ НЕ содержится в bits и его нужно добавить в начало
+        std::vector<std::complex<double>> ComplexModulation(const std::vector<bool>& bits, PresencePivotSymbol is_presence = PresencePivotSymbol::WITHOUT_PIVOT);
+
         /// Модуляция одного символа. Сложность: O(sampling_frequency / carrier_frequency)
         void ModulationOneSymbol(std::vector<double>::iterator begin_samples, std::vector<double>::iterator end_samples, uint16_t current_symbol, double& phase) const;
 
@@ -64,6 +71,12 @@ namespace dpsk_mod {
 
         /// Модуляция с изпользованием промежуточной частоты. Частота дискретизации НЕ кратна несущей частоте. Сложность: O(N)
         void ModulationWithUseIntermediateFreq(const std::vector<uint32_t>& symbols, std::vector<double>& modulated_signal, uint16_t num_samples_in_symbol);
+
+        /// Определить частоту используемой несущей частоты. Сложность: O(1)
+        uint32_t DetermineUsedCarrierFreq() const;
+
+        /// Конвертировать биты в символы в соответствии с позиционностью ОФМ и наличием опорного символа в последовательности бит. Сложность: O(N)
+        std::vector<uint32_t> ExtractSymbolsFromBits(const std::vector<bool>& bits, PresencePivotSymbol is_presence) const;
 
     private:
         uint32_t intermediate_frequency_ = 0u; // промежуточная частота, Гц
@@ -80,6 +93,7 @@ namespace dpsk_mod {
         void TestClassicalModulation(); // модуляция без переноса на промежуточную несущую
         void TestModulationWithUseIntermediateFreq(); // модуляция с переносом на промежуточную несущую
         void TestConstellationShift(); // сдвиг созвездия
+        void TestComplexModulation(); // модуляция в комплексной форме
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_mod

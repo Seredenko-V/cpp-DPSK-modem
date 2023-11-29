@@ -506,6 +506,63 @@ namespace dpsk_mod {
             cerr << "dpsk_mod::TestConstellationShift has passed"s << endl;
         }
 
+        bool operator==(const vector<complex<double>>& lhs, const vector<complex<double>>& rhs) {
+            if (lhs.size() != rhs.size()) {
+                return false;
+            }
+            for (size_t i = 0; i < lhs.size(); ++i) {
+                if (!math::IsSameDouble(lhs.at(i).real(), rhs.at(i).real()) || !math::IsSameDouble(lhs.at(i).imag(), rhs.at(i).imag())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        void TestComplexModulation() {
+            constexpr uint32_t kSamplingFrequency = 19'200u;
+            constexpr uint32_t kCarrierFrequency = 1200u;
+            constexpr uint32_t kSymbolSpeed = kCarrierFrequency;
+            DPSKModulator modulator(kSamplingFrequency, kSymbolSpeed);
+            modulator.SetCarrierFrequency(kCarrierFrequency);
+            {
+                modulator.SetPositionality(2).SetPhase(0);
+                vector<bool> bits{1,1,1,1,1,0};
+                vector<complex<double>> expected_signal {
+                    {cos(0), sin(0)}, // опорный, добавлен по умолчанию
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(0), sin(0)},
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(0), sin(0)},
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(M_PI), sin(M_PI)}
+                };
+                assert(expected_signal == modulator.ComplexModulation(bits));
+            }{ // проверка увеличения количества бит до кратности количеству бит в одном символе
+                modulator.SetPositionality(4).SetPhase(0);
+                vector<bool> bits{1, 0,1, 0,0, 1,1};
+                vector<complex<double>> expected_signal {
+                    {cos(0), sin(0)}, // опорный, добавлен по умолчанию
+                    {cos(M_PI / 2), sin(M_PI / 2)}, // первый бит был дописан до 01
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(M_PI), sin(M_PI)},
+                    {cos(0), sin(0)}
+                };
+                assert(expected_signal == modulator.ComplexModulation(bits));
+            }{
+                modulator.SetPositionality(8).SetPhase(0);
+                vector<bool> bits{1,0,1, 1,0,0, 1,1,1, 0,0,0};
+                vector<complex<double>> expected_signal {
+                    {cos(0), sin(0)}, // опорный, добавлен по умолчанию
+                    {cos(3 * M_PI / 2), sin(3 * M_PI / 2)},
+                    {cos(5 * M_PI / 4), sin(5 * M_PI / 4)},
+                    {cos(M_PI / 2), sin(M_PI / 2)},
+                    {cos(M_PI / 2), sin(M_PI / 2)}
+                };
+                assert(expected_signal == modulator.ComplexModulation(bits));
+            }
+            cerr << "dpsk_mod::TestComplexModulation has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestDefaultConstructor();
             TestSetPositionality();
@@ -513,6 +570,7 @@ namespace dpsk_mod {
             TestClassicalModulation();
             TestModulationWithUseIntermediateFreq();
             TestConstellationShift();
+            TestComplexModulation();
             cerr << ">>> dpsk_mod::AllTests has passed <<<"s << endl;
         }
     } // namespace tests
