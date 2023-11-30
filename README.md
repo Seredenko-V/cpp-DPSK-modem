@@ -4,7 +4,7 @@
 с [относительной фазовой модуляцией](https://vunivere.ru/work63579/page2) (ОФМ) для позиционностей, являющихся степенью двойки.
 Сигнальное созвездие заполняется в соответствии с [кодом Грея](https://zvondozvon.ru/radiosvyaz/kod-greya?ysclid=lpgoc3vcky544727201).
 
-![Gray-4-8-PSK](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/main/images/Gray-4-8-PSK.jpg?token=GHSAT0AAAAAACK4KXK6MPHJHQPYSG27W6YSZLFZPYQ "Gray-4-8-PSK")
+![Gray-4-8-PSK](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/main/images/Gray-4-8-PSK.jpg?token=GHSAT0AAAAAACK4KXK77ACB33HXW7YP3MVCZLIEDUA "Gray-4-8-PSK")
 
 * Решена проблема дублирования кода, связанная с реализацией каждой конкретной позиционности ОФМ.
 * Решена проблема некратности несущей частоты ($`Fc`$) частоте дискретизации ($`Fs`$).
@@ -112,7 +112,10 @@ $`Fc`$ которого определяется автоматически ка
 одного символа, данная проверка будет осуществляться для каждого модулируемого символа, что не является оптимальным решением с точки зрения
 производительности;
 9. `ComplexModulation` - модуляция, представляющая каждый информационный символ в виде комплексного числа, вещественная часть которого - синфазная
-составляющая, а мнимая - квадратурная. Сложность: $`O(N)`$ - если опорный символ содержится в последовательности бит и $`O(2*N)`$ - если опорный
+составляющая, а мнимая - квадратурная. В текущей версии реализации для работы данного метода $`Fs`$ и $`Fc`$ не имеют значения, поскольку 
+представление сигнала во временой области, в формате вещественных отсчетов реализуется в методе `Modulation`. В последующих версиях библиотеки
+будет возможно представление сигнала в виде последовательности отсчетов во временной области путём умножения синфазной и квадратурной компонент на
+несущее колебание. Сложность: $`O(N)`$ - если опорный символ содержится в последовательности бит и $`O(2*N)`$ - если опорный
 символ **не** содержится в последовательности бит и его нужно добавить в начало.
 
 #### private
@@ -330,4 +333,4 @@ target_link_libraries(UserDPSKModem DPSKModem)
 Примеры использования можно найти в тестах библиотеки, в файле `DPSK-modem/tests.cpp`.
 
 ## UML-диаграмма
-![solution-UML](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/9cb571169eec6dedfff09001f88eb57c41461690/images/solution-UML.svg?token=AWESMY3323R4NAVYBJ3G3HTFMXF6S "solution-UML")
+![solution-UML](https://raw.githubusercontent.com/Seredenko-V/cpp-DPSK-modem/627cbc82ef7c20ec92460d609e3efb7862db8bdb/images/solution-UML.svg?token=AWESMY56SJI5JM4A7UH4F7DFNAQOG "solution-UML")
