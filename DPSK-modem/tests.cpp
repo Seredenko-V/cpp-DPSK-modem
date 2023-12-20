@@ -8,6 +8,7 @@
 #include <vector>
 #include <fstream>
 #include <cmath>
+#include <random>
 
 using namespace std;
 
@@ -989,6 +990,93 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestDemodulationIQComponents has passed"s << endl;
         }
 
+        void AddNoise(vector<double>& samples, mt19937& mt, normal_distribution<double>& dist) {
+            for (double& sample : samples) {
+                sample += dist(mt);
+            }
+        }
+
+        /// Вероятность ошибки на символ
+        double GetErrorPerSymbol(const vector<uint32_t>& expected_symbols, const vector<uint32_t>& real_symbols) {
+            assert(expected_symbols.size() == real_symbols.size());
+            uint32_t num_errors = 0u;
+            for (size_t i = 0; i < expected_symbols.size(); ++i) {
+                if (expected_symbols[i] != real_symbols[i]) {
+                    ++num_errors;
+                }
+            }
+            return static_cast<double>(num_errors) / expected_symbols.size();
+        }
+
+        vector<bool> CreateRandomBitsSequence(int size) {
+            random_device rd;
+            mt19937 mt(rd());
+            uniform_int_distribution<> dist(0,1);
+            assert(size > 0);
+            vector<bool> random_bits(size);
+            for (int i = 0; i < size; ++i) {
+                random_bits[i] = dist(mt);
+            }
+            return random_bits;
+        }
+
+        void CheckExchangeWithNoise(uint32_t sampling_frequency, uint32_t symbol_speed, uint32_t carrier_frequency, double standard_deviation = 0, double average = 0) {
+            random_device rd;
+            mt19937 mt(rd());
+            normal_distribution<double> dist(average, standard_deviation);
+
+            dpsk_mod::DPSKModulator modulator(sampling_frequency, symbol_speed);
+            modulator.SetIntermediateFrequency(symbol_speed).SetCarrierFrequency(carrier_frequency);
+            DPSKDemodulator demodulator(sampling_frequency, symbol_speed);
+            demodulator.SetCarrierFrequency(carrier_frequency);
+            int num_bit_per_symbol = 1;
+            constexpr uint32_t kNumBits = 16'384u;
+            { // ОФМ-2 без сдвига созвездия
+                vector<bool> bits = CreateRandomBitsSequence(kNumBits);
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                AddNoise(mod_bits, mt, dist);
+                vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
+                cerr << "DPSK-2: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
+                     << GetErrorPerSymbol(symbols, demod_bits) << endl;
+            }
+            // ОФМ-4 без сдвига созвездия
+            modulator.SetPositionality(4);
+            demodulator.SetPositionality(4);
+            num_bit_per_symbol = 2;
+            { // без опорного символа в последовательности бит
+                vector<bool> bits = CreateRandomBitsSequence(kNumBits);
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                AddNoise(mod_bits, mt, dist);
+                vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
+                cerr << "DPSK-4: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
+                     << GetErrorPerSymbol(symbols, demod_symbols) << endl;
+            }
+            // ОФМ-8 без сдвига созвездия
+            modulator.SetPositionality(8);
+            demodulator.SetPositionality(8);
+            num_bit_per_symbol = 3;
+            { // без опорного символа в последовательности бит
+                vector<bool> bits = CreateRandomBitsSequence(kNumBits);
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                AddNoise(mod_bits, mt, dist);
+                vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
+                cerr << "DPSK-8: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
+                     << GetErrorPerSymbol(symbols, demod_symbols) << endl;
+            }
+            cerr << "==========================================="s << endl;
+        }
+
+        void TestDemodulationWithNoise() {
+            cerr << "dpsk_demod::Started TestDemodulationWithNoise..."s << endl;
+            for (double standard_deviation = 0.0; standard_deviation <= 3.0; standard_deviation += 0.1) {
+                CheckExchangeWithNoise(19200, 1200, 1800, standard_deviation); // частота дискретизации 19200 Гц, скорость 1200 символов/с, несущая 1800 Гц
+            }
+            cerr << "dpsk_demod::TestDemodulationWithNoise has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestExtractInPhaseAndQuadratureComponentsSymbol();
             TestExtractPhaseValue();
@@ -1000,6 +1088,7 @@ namespace dpsk_demod {
             TestDemodulationWithPhaseShift();
             TestDemodulationWithDecorrelationMatrix();
             TestDemodulationIQComponents();
+            TestDemodulationWithNoise();
             cerr << ">>> dpsk_demod::AllTests has passed <<<"s << endl;
         }
     } // namespace tests

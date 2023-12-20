@@ -83,6 +83,7 @@ namespace dpsk_demod {
         void TestDemodulationWithPhaseShift();
         void TestDemodulationWithDecorrelationMatrix();
         void TestDemodulationIQComponents();
+        void TestDemodulationWithNoise();
         void RunAllTests();
     } // namespace tests
 } // namespace dpsk_demod
