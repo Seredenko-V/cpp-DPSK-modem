@@ -59,7 +59,7 @@ private:
 
 private:
     // порог разности фаз, превышение которого говорит о возможной позиции тактовой синхронизации
-    double phase_diff_threshold_ = 0.;
+    double samples_diff_threshold_ = 0.;
     uint32_t num_pos_for_determ_synch_ = 0u; // количество векторов для получения результирующего
 
     uint32_t carrier_freq_ = 0u; // несущая частота, Гц
