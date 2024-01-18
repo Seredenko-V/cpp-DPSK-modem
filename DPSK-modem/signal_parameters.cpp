@@ -61,8 +61,8 @@ SignalParameters& SignalParameters::SetCarrierFrequency(int carrier_frequency) {
     if (carrier_frequency <= 0) {
         throw invalid_argument("Value "s + to_string(carrier_frequency) + " of carrier frequency isn't positive"s);
     }
-    if (4 * static_cast<uint32_t>(carrier_frequency) > sampling_frequency_) {
-        throw invalid_argument("4 * "s + to_string(carrier_frequency) + " > "s + to_string(sampling_frequency_) + ". Nyquist's theorem does not hold"s);
+    if (2 * static_cast<uint32_t>(carrier_frequency) > sampling_frequency_) {
+        throw invalid_argument("2 * "s + to_string(carrier_frequency) + " > "s + to_string(sampling_frequency_) + ". Nyquist's theorem does not hold"s);
     }
     carrier_frequency_ = carrier_frequency;
     carrier_cyclic_frequency_ = 2 * M_PI * carrier_frequency_;
