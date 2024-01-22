@@ -2,6 +2,7 @@
 #include "gray_code.h"
 #include "dpsk_modulator.h"
 #include "dpsk_demodulator.h"
+#include "phase_synchronizator.h"
 
 #include <iostream>
 #include <cassert>
@@ -9,6 +10,7 @@
 #include <fstream>
 #include <cmath>
 #include <random>
+#include <algorithm>
 
 using namespace std;
 
@@ -1093,3 +1095,42 @@ namespace dpsk_demod {
         }
     } // namespace tests
 } // namespace dpsk_demod
+
+namespace cycle_synch {
+    namespace tests {
+        void TestDetermClockSynchPos() {
+            constexpr uint32_t kSamplingFreq = 5'000u;
+            constexpr uint32_t kCarrierFreq = 1'000u;
+
+            dpsk_mod::DPSKModulator modulator(kSamplingFreq, kCarrierFreq);
+            modulator.SetModulationFunction(dpsk_mod::Cos).SetCarrierFrequency(kCarrierFreq);
+            PhaseSynchronizator synchronizator(kSamplingFreq, kCarrierFreq);
+            synchronizator.SetPhaseDiffThreshold(1e-5);
+            synchronizator.SetNumPosForDetermSynch(10u);
+            { // ОФМ-2 без сдвига созвездия. Сигнал с 0 отсчета
+                constexpr uint32_t kNumBitPerSymbol = 1u;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == 0);
+            }{ // ОФМ-2 без сдвига созвездия. Сигнал с 100 отсчета
+                constexpr uint32_t kPosBeginSignal = 100u;
+                constexpr uint32_t kNumBitPerSymbol = 1u;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() + kPosBeginSignal);
+                reverse(mod_bits.begin(), mod_bits.end());
+                cout << synchronizator.DetermClockSynchPos(mod_bits) << endl;
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
+            }
+            cerr << "cycle_synch::TestDetermClockSynchPos has passed"s << endl;
+        }
+
+        void RunAllTests() {
+            TestDetermClockSynchPos();
+            cerr << ">>> cycle_synch::AllTests has passed <<<"s << endl;
+        }
+    } // namespace tests
+} // namespace cycle_synch
