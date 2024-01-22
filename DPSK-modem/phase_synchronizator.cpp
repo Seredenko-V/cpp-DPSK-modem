@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 #include <string>
+#include <numeric>
+#include <cmath>
 
 using namespace std;
 
@@ -58,4 +60,42 @@ void PhaseSynchronizator::SetNumPosForDetermSynch(int64_t num_pos_for_determ_syn
 
 uint32_t PhaseSynchronizator::GetNumPosForDetermSynch() const noexcept {
     return num_pos_for_determ_synch_;
+}
+
+uint32_t PhaseSynchronizator::DetermClockSynchPos(const vector<double>& samples) {
+    uint32_t one_period = sampling_freq_ / carrier_freq_;
+    if (samples.size() < one_period) { // меньше одного периода
+        throw invalid_argument("Number of samples is less than one period elementary signal.\n"s);
+    }
+    double last_theory_sample = samples[0];
+    double prev_last_theory_sample = samples[1];
+
+    vector<complex<double>> potential_positions_synch(num_pos_for_determ_synch_);
+    uint32_t counter_deviations = 0u;
+
+    for (size_t i = 0; i < samples.size(); ++i) {
+        double new_theory_sample = 2 * cos(cyclic_carrier_freq_ * time_step_between_samples_) * prev_last_theory_sample - last_theory_sample;
+        last_theory_sample = prev_last_theory_sample;
+        prev_last_theory_sample = new_theory_sample;
+
+        if (std::abs(new_theory_sample - samples[i]) >= samples_diff_threshold_) {
+            potential_positions_synch[counter_deviations++] = cos(2 * M_PI * i / one_period) + sin(2 * M_PI * i / one_period);
+            // если набор потенциальных позиций синхронизации заполнен
+            if (counter_deviations == num_pos_for_determ_synch_ - 1) {
+                break;
+            }
+        }
+    }
+    // если набор потенциальных позиций синхронизации не был полностью заполнен
+    if (counter_deviations < num_pos_for_determ_synch_ - 1) {
+        potential_positions_synch.resize(counter_deviations);
+    }
+
+    return ExtractSynchPos(move(potential_positions_synch));
+}
+
+uint32_t PhaseSynchronizator::ExtractSynchPos(vector<complex<double>>&& potential_pos_of_synch) {
+    complex<double> result = accumulate(potential_pos_of_synch.begin(), potential_pos_of_synch.end(), complex<double>(0,0));
+    double arg = atan2(result.imag(), result.real());
+    return static_cast<uint32_t>(arg * (sampling_freq_ / carrier_freq_) / (2 * M_PI));
 }

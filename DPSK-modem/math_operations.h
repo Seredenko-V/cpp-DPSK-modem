@@ -7,7 +7,7 @@
 #include <iomanip>
 
 namespace math {
-    double EPSILON = 1e-6; // погрешность сравнения double по умолчанию
+    constexpr double EPSILON = 1e-6; // погрешность сравнения double по умолчанию
 
     /// Является ли число степенью двойки: N^2 = value. Сложность: O(1)
     bool IsPowerOfTwo(int value) noexcept;

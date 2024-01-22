@@ -45,7 +45,7 @@ public:
     /// разности фаз
     void SetAllowableBER(double BER);
 
-    uint32_t DetermСlockSynchPos(const std::vector<double>& samples);
+    uint32_t DetermClockSynchPos(const std::vector<double>& samples);
 
     IteratorRange<std::vector<double>::const_iterator> PrepareRangeForDemodulation(const std::vector<double>& samples);
 
