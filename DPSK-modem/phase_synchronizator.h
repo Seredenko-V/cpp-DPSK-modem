@@ -37,7 +37,7 @@ namespace cycle_synch {
         std::vector<std::complex<double>> DetermPotentialPosOfSynch(std::vector<double>::const_iterator begin_range,
                                                                     std::vector<double>::const_iterator end_range);
 
-        uint32_t ExtractSynchPos(std::vector<std::complex<double>>&& potential_pos_of_synch);
+        uint32_t ExtractSynchPos(const std::vector<std::complex<double>>& potential_pos_of_synch);
 
     private:
         // порог разности фаз, превышение которого говорит о возможной позиции тактовой синхронизации

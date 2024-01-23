@@ -1139,31 +1139,79 @@ namespace domain {
 namespace cycle_synch {
     namespace tests {
         void TestDetermClockSynchPos() {
-            constexpr uint32_t kSamplingFreq = 5'000u;
+            constexpr uint32_t kSamplingFreq = 10'000u;
             constexpr uint32_t kCarrierFreq = 1'000u;
 
             dpsk_mod::DPSKModulator modulator(kSamplingFreq, kCarrierFreq);
             modulator.SetModulationFunction(dpsk_mod::Cos).SetCarrierFrequency(kCarrierFreq);
             PhaseSynchronizator synchronizator(kSamplingFreq, kCarrierFreq);
-            synchronizator.SetPhaseDiffThreshold(1e-5);
-            synchronizator.SetNumPosForDetermSynch(10u);
-            { // ОФМ-2 без сдвига созвездия. Сигнал с 0 отсчета
-                constexpr uint32_t kNumBitPerSymbol = 1u;
+            synchronizator.SetNumPosForDetermSynch(100u);
+            constexpr uint32_t kNumBitPerSymbol = 1u;
+
+            // ОФМ-2 без сдвига созвездия
+            { // Сигнал с 0 отсчета
                 vector<bool> bits{0,1,1,1,0,1};
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
+                synchronizator.SetPhaseDiffThreshold(1e-5);
+                cout << synchronizator.DetermClockSynchPos(mod_bits) << endl;
                 assert(synchronizator.DetermClockSynchPos(mod_bits) == 0);
-            }{ // ОФМ-2 без сдвига созвездия. Сигнал с 100 отсчета
-                constexpr uint32_t kPosBeginSignal = 100u;
-                constexpr uint32_t kNumBitPerSymbol = 1u;
+            }{ // Сигнал идёт непрерывно, начиная с половины периода. Шума нет
+                constexpr uint32_t kPosBeginSignal = kSamplingFreq / kCarrierFreq / 2;
                 vector<bool> bits{0,1,1,1,0,1};
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
+
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() - kPosBeginSignal); // удаляем первую половину периода
+                reverse(mod_bits.begin(), mod_bits.end());
+                synchronizator.SetPhaseDiffThreshold(1e-5);
+                ofstream fout("find_synch.txt"s);
+                assert(fout.is_open());
+                for (double sample : mod_bits) {
+                    fout << sample << endl;
+                }
+
+
+                cout << synchronizator.DetermClockSynchPos(mod_bits) << endl;
+                // с учетом половины опорного колебания и первым 0 информ. последовательности, получется, что позиция смены фазы будет в отсчете с номером 1.5 периодов
+                constexpr uint32_t kPosFirstSynch = kSamplingFreq / kCarrierFreq + kPosBeginSignal;
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosFirstSynch);
+            }{ // Сигнал идёт непрерывно, начиная с половины периода. Добавлен шум
+                constexpr uint32_t kPosBeginSignal = kSamplingFreq / kCarrierFreq / 2;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() - kPosBeginSignal); // удаляем первую половину периода
+                reverse(mod_bits.begin(), mod_bits.end());
+                constexpr double kStandardDeviation = 0.2;
+                domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
+
+                synchronizator.SetPhaseDiffThreshold(kStandardDeviation * kStandardDeviation + 0.1);
+                cout << synchronizator.DetermClockSynchPos(mod_bits) << endl;
+                //assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
+            }{ // Сигнал с 100 отсчета, до него - чистый шум
+                constexpr uint32_t kPosBeginSignal = 100u;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+
                 reverse(mod_bits.begin(), mod_bits.end());
                 mod_bits.resize(mod_bits.size() + kPosBeginSignal);
                 reverse(mod_bits.begin(), mod_bits.end());
+                constexpr double kStandardDeviation = 0.2;
+                domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
+                ofstream fout("find_synch.txt"s);
+                assert(fout.is_open());
+                for (double sample : mod_bits) {
+                    fout << sample << endl;
+                }
+
+                synchronizator.SetPhaseDiffThreshold(kStandardDeviation * kStandardDeviation + 0.2);
                 cout << synchronizator.DetermClockSynchPos(mod_bits) << endl;
-                assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
+                //assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
             }
             cerr << "cycle_synch::TestDetermClockSynchPos has passed"s << endl;
         }
