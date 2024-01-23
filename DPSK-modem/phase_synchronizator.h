@@ -1,29 +1,10 @@
 #pragma once
 
+#include "domain.h"
+
 #include <cstdint>
 #include <vector>
 #include <complex>
-
-template <typename Iterator>
-class IteratorRange {
-public:
-    IteratorRange() = default;
-    explicit IteratorRange(Iterator begin_range, Iterator end_range)
-        : begin_range_(begin_range), end_range_(end_range) {
-    }
-    Iterator begin() const {
-        return begin_range_;
-    }
-    Iterator end() const {
-        return end_range_;
-    }
-    size_t size() const {
-        return distance(begin_range_, end_range_);
-    }
-private:
-    Iterator begin_range_;
-    Iterator end_range_;
-};
 
 namespace cycle_synch {
     class PhaseSynchronizator {

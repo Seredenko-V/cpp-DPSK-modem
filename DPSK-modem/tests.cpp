@@ -3,6 +3,8 @@
 #include "dpsk_modulator.h"
 #include "dpsk_demodulator.h"
 #include "phase_synchronizator.h"
+#include "domain.h"
+
 
 #include <iostream>
 #include <cassert>
@@ -992,12 +994,6 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestDemodulationIQComponents has passed"s << endl;
         }
 
-        void AddNoise(vector<double>& samples, mt19937& mt, normal_distribution<double>& dist) {
-            for (double& sample : samples) {
-                sample += dist(mt);
-            }
-        }
-
         /// Вероятность ошибки на символ
         double GetErrorPerSymbol(const vector<uint32_t>& expected_symbols, const vector<uint32_t>& real_symbols) {
             assert(expected_symbols.size() == real_symbols.size());
@@ -1023,10 +1019,6 @@ namespace dpsk_demod {
         }
 
         void CheckExchangeWithNoise(uint32_t sampling_frequency, uint32_t symbol_speed, uint32_t carrier_frequency, double standard_deviation = 0, double average = 0) {
-            random_device rd;
-            mt19937 mt(rd());
-            normal_distribution<double> dist(average, standard_deviation);
-
             dpsk_mod::DPSKModulator modulator(sampling_frequency, symbol_speed);
             modulator.SetIntermediateFrequency(symbol_speed).SetCarrierFrequency(carrier_frequency);
             DPSKDemodulator demodulator(sampling_frequency, symbol_speed);
@@ -1037,7 +1029,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddNoise(mod_bits, mt, dist);
+                AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-2: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_bits) << endl;
@@ -1050,7 +1042,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddNoise(mod_bits, mt, dist);
+                AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-4: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_symbols) << endl;
@@ -1063,7 +1055,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddNoise(mod_bits, mt, dist);
+                AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-8: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_symbols) << endl;

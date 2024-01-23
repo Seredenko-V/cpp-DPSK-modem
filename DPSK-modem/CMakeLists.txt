@@ -20,6 +20,7 @@ set(SIGNAL_PARAMS signal_parameters.h signal_parameters.cpp)
 set(DPSK_MODULATION dpsk_modulator.h dpsk_modulator.cpp)
 set(DPSK_DEMODULATOR dpsk_demodulator.h dpsk_demodulator.cpp)
 set(PHASE_SYNCHRONIZATOR phase_synchronizator.h phase_synchronizator.cpp)
+set(DOMAIN domain.h domain.cpp)
 
-add_library(DPSKModem STATIC ${GRAY_CODE} ${SIGNAL_PARAMS} ${MATH_OPERATIONS}
+add_library(DPSKModem STATIC ${GRAY_CODE} ${SIGNAL_PARAMS} ${MATH_OPERATIONS} ${DOMAIN}
     ${DPSK_MODULATION} ${DPSK_DEMODULATOR} ${PHASE_SYNCHRONIZATOR} matrix.h tests.cpp)
