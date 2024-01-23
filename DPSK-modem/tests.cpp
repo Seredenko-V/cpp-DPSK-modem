@@ -1029,7 +1029,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddGausNoise(mod_bits, standard_deviation, average);
+                domain::AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-2: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_bits) << endl;
@@ -1042,7 +1042,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddGausNoise(mod_bits, standard_deviation, average);
+                domain::AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-4: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_symbols) << endl;
@@ -1055,7 +1055,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddGausNoise(mod_bits, standard_deviation, average);
+                domain::AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-8: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_symbols) << endl;
@@ -1087,6 +1087,54 @@ namespace dpsk_demod {
         }
     } // namespace tests
 } // namespace dpsk_demod
+
+namespace domain {
+    namespace tests {
+        void TestAddGausNoiseToVector() {
+            constexpr uint16_t kSizeSequence = 100u;
+            constexpr double kAverage = 0.0;
+            {
+                constexpr double kStandardDeviation = 0.2;
+                vector<double> sequence(kSizeSequence);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence, kStandardDeviation, kAverage);
+                assert(!math::IsSameContainersWithDouble(original_sequence, sequence));
+            }{
+                constexpr double kStandardDeviation = 0.0;
+                vector<double> sequence(kSizeSequence, 3.14);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence, kStandardDeviation, kAverage);
+                assert(math::IsSameContainersWithDouble(original_sequence, sequence));
+            }
+            cerr << "domain::TestAddGausNoiseToVector has passed"s << endl;
+        }
+
+        void TestAddGausNoiseToIteratorRange() {
+            constexpr uint16_t kSizeSequence = 100u;
+            constexpr double kAverage = 0.0;
+            {
+                constexpr double kStandardDeviation = 0.2;
+                vector<double> sequence(kSizeSequence);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence.begin(), sequence.end(), kStandardDeviation, kAverage);
+                assert(!math::IsSameContainersWithDouble(original_sequence, sequence));
+            }{
+                constexpr double kStandardDeviation = 0.0;
+                vector<double> sequence(kSizeSequence, 3.14);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence.begin(), sequence.end(), kStandardDeviation, kAverage);
+                assert(math::IsSameContainersWithDouble(original_sequence, sequence));
+            }
+            cerr << "domain::TestAddGausNoiseToIteratorRange has passed"s << endl;
+        }
+
+        void RunAllTests() {
+            TestAddGausNoiseToVector();
+            TestAddGausNoiseToIteratorRange();
+            cerr << ">>> domain::AllTests has passed <<<"s << endl;
+        }
+    } // namespace tests
+} // namespace domain
 
 namespace cycle_synch {
     namespace tests {

@@ -29,11 +29,11 @@ namespace cycle_synch {
 
         uint32_t DetermClockSynchPos(const std::vector<double>& samples);
 
-        IteratorRange<std::vector<double>::const_iterator> PrepareRangeForDemodulation(const std::vector<double>& samples);
+        domain::IteratorRange<std::vector<double>::const_iterator> PrepareRangeForDemodulation(const std::vector<double>& samples);
 
     private:
         /// Определить потенциальные позиции тактовой синхронизации
-        std::vector<std::complex<double>> DetermPotentialPosOfSynch(IteratorRange<std::vector<double>::const_iterator> range);
+        std::vector<std::complex<double>> DetermPotentialPosOfSynch(domain::IteratorRange<std::vector<double>::const_iterator> range);
         std::vector<std::complex<double>> DetermPotentialPosOfSynch(std::vector<double>::const_iterator begin_range,
                                                                     std::vector<double>::const_iterator end_range);
 
