@@ -68,13 +68,13 @@ namespace cycle_synch {
     uint32_t PhaseSynchronizator::ExtractSynchPos(const vector<complex<double>>& potential_pos_of_synch) {
         complex<double> result = accumulate(potential_pos_of_synch.begin(), potential_pos_of_synch.end(), complex<double>(0,0));
         double arg = atan2(result.imag(), result.real());
-        arg = arg * (sampling_freq_ / carrier_freq_) / (2 * M_PI);
         math::PhaseToRangeFrom0To2PI(arg);
+        arg = arg * (sampling_freq_ / carrier_freq_) / (2 * M_PI);
         return arg;
     }
 
     uint32_t PhaseSynchronizator::DetermClockSynchPos(const vector<double>& samples) {
-        uint32_t one_period = sampling_freq_ / carrier_freq_;
+        const uint32_t one_period = sampling_freq_ / carrier_freq_;
         if (samples.size() < one_period) { // меньше одного периода
             throw invalid_argument("Number of samples is less than one period elementary signal.\n"s);
         }
@@ -84,7 +84,8 @@ namespace cycle_synch {
         for (size_t i = 2; i < samples.size(); ++i) {
             double new_theory_sample = 2 * cos(cyclic_carrier_freq_ * time_step_between_samples_) * samples[i - 1] - samples[i - 2];
             if (std::abs(new_theory_sample - samples[i]) > samples_diff_threshold_) {
-                potential_positions_synch[counter_deviations++] = complex<double>(cos(2 * M_PI * i / one_period), sin(2 * M_PI * i / one_period));
+                const double current_pos_radian = 2 * M_PI * (i % one_period) / one_period;
+                potential_positions_synch[counter_deviations++] = complex<double>(cos(current_pos_radian), sin(current_pos_radian));
                 // если набор потенциальных позиций синхронизации заполнен
                 if (counter_deviations == num_pos_for_determ_synch_ - 1) {
                     break;
