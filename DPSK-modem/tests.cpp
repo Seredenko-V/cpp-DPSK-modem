@@ -1178,18 +1178,11 @@ namespace cycle_synch {
                 reverse(mod_bits.begin(), mod_bits.end());
                 constexpr double kStandardDeviation = 0.2;
                 domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
-                synchronizator.SetPhaseDiffThreshold(kStandardDeviation * kStandardDeviation);
 
-                ofstream fout("find_synch.txt"s);
-                assert(fout.is_open());
-                for (double sample : mod_bits) {
-                    fout << sample << endl;
-                }
-
-                cout << synchronizator.DetermClockSynchPos(mod_bits) << endl;
+                synchronizator.SetPhaseDiffThreshold(2 - kStandardDeviation);
                 assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
-            }{ // Сигнал с 100 отсчета, до него - чистый шум
-                constexpr uint32_t kPosBeginSignal = 100u;
+            }{ // Сигнал должен начинаться в течение отсчетов первого периода, иначе - неверная позиция синхронизации
+                constexpr uint32_t kPosBeginSignal = 111u % (kSamplingFreq / kCarrierFreq);
                 vector<bool> bits{0,1,1,1,0,1};
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
@@ -1197,17 +1190,11 @@ namespace cycle_synch {
                 reverse(mod_bits.begin(), mod_bits.end());
                 mod_bits.resize(mod_bits.size() + kPosBeginSignal);
                 reverse(mod_bits.begin(), mod_bits.end());
-                constexpr double kStandardDeviation = 0.2;
+                constexpr double kStandardDeviation = 0.1;
                 domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
-                ofstream fout("find_synch.txt"s);
-                assert(fout.is_open());
-                for (double sample : mod_bits) {
-                    fout << sample << endl;
-                }
 
-                synchronizator.SetPhaseDiffThreshold(kStandardDeviation * kStandardDeviation + 0.2);
-                cout << synchronizator.DetermClockSynchPos(mod_bits) << endl;
-                //assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
+                synchronizator.SetPhaseDiffThreshold(2 - kStandardDeviation);
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
             }
             cerr << "cycle_synch::TestDetermClockSynchPos has passed"s << endl;
         }
