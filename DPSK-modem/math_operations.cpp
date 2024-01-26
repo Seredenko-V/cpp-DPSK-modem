@@ -16,7 +16,7 @@ namespace math {
         if (value <= 0) {
             throw invalid_argument("Number is not positive."s);
         }
-        return floor(log2(value)) + 1;
+        return static_cast<int>(floor(log2(value))) + 1;
     }
 
     uint32_t ConvertationBinToDec(const vector<bool>& bits) {
