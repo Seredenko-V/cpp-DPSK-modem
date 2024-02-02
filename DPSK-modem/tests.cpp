@@ -108,7 +108,7 @@ namespace math {
                 const vector<uint32_t> kSymbols{1};
                 assert(kSymbols == ConvertationBitsToDecValues(kBits, 2));
             }
-            { // 3 бита в символе + дописывание одного бита для кратности 3
+            { // 3 бита в символе + дописывание двух бит для кратности 3
                 const vector<bool> kBits{1, 0,1,1, 1,0,1};
                 const vector<uint32_t> kSymbols{1,3,5};
                 assert(kSymbols == ConvertationBitsToDecValues(kBits, 3));

@@ -6,14 +6,22 @@
 #include <numeric>
 #include <cmath>
 
-#include <iostream>
-
 using namespace std;
 
 namespace cycle_synch {
-    PhaseSynchronizator::PhaseSynchronizator(int64_t sampling_freq, int64_t carrier_freq) {
+    PhaseSynchronizator::PhaseSynchronizator(int64_t sampling_freq, int64_t carrier_freq, int64_t buffer_capacity) {
         SetCarrierFreq(carrier_freq);
         SetSamplingFreq(sampling_freq);
+        num_samples_per_period_ = sampling_freq_ / carrier_freq_;
+        SetBufferCapacity(buffer_capacity);
+    }
+
+    void PhaseSynchronizator::SetBufferCapacity(int64_t capacity) {
+        received_samples_.set_capacity(capacity);
+    }
+
+    uint32_t PhaseSynchronizator::GetBufferCapacity() const noexcept {
+        return received_samples_.capacity();
     }
 
     void PhaseSynchronizator::SetCarrierFreq(int64_t new_carrier_freq) {
@@ -69,34 +77,31 @@ namespace cycle_synch {
         complex<double> result = accumulate(potential_pos_of_synch.begin(), potential_pos_of_synch.end(), complex<double>(0,0));
         double arg = atan2(result.imag(), result.real());
         math::PhaseToRangeFrom0To2PI(arg);
-        arg = arg * (sampling_freq_ / carrier_freq_) / (2 * M_PI);
+        arg = arg * num_samples_per_period_ / (2 * M_PI);
         return arg;
     }
 
     uint32_t PhaseSynchronizator::DetermClockSynchPos(const vector<double>& samples) {
-        const uint32_t one_period = sampling_freq_ / carrier_freq_;
-        if (samples.size() < one_period) { // меньше одного периода
+        if (samples.size() < num_samples_per_period_) { // меньше одного периода
             throw invalid_argument("Number of samples is less than one period elementary signal.\n"s);
         }
-        vector<complex<double>> potential_positions_synch(num_pos_for_determ_synch_);
-        uint32_t counter_deviations = 0u;
-
-        for (size_t i = 2; i < samples.size(); ++i) {
-            double new_theory_sample = 2 * cos(cyclic_carrier_freq_ * time_step_between_samples_) * samples[i - 1] - samples[i - 2];
-            if (std::abs(new_theory_sample - samples[i]) > samples_diff_threshold_) {
-                const double current_pos_radian = 2 * M_PI * (i % one_period) / one_period;
-                potential_positions_synch[counter_deviations++] = complex<double>(cos(current_pos_radian), sin(current_pos_radian));
-                // если набор потенциальных позиций синхронизации заполнен
-                if (counter_deviations == num_pos_for_determ_synch_ - 1) {
-                    break;
-                }
-            }
-        }
-        // если набор потенциальных позиций синхронизации не был полностью заполнен
-        if (counter_deviations < num_pos_for_determ_synch_ - 1) {
-            potential_positions_synch.resize(counter_deviations);
-        }
-
+        std::vector<std::complex<double>> potential_positions_synch = DetermPotentialPosOfSynch(samples.begin(), samples.end());
         return ExtractSynchPos(potential_positions_synch);
+    }
+
+    domain::IteratorRange<It> PhaseSynchronizator::PrepareRangeForDemodulation(const vector<double>& samples) {
+        static uint32_t size_prev_iter = 0u; // кол-во отсчетов "хвоста" из предыдущей итерации
+        if (received_samples_.capacity() <= samples.size()) {
+            SetBufferCapacity(samples.size() + num_samples_per_period_);
+        }
+        received_samples_.resize(size_prev_iter + samples.size()); // оставляем отсчеты "хвоста"
+
+        copy(samples.begin(), samples.end(), received_samples_.begin() + size_prev_iter);
+        //uint32_t clock_synch_pos = DetermClockSynchPos(received_samples_.begin(), received_samples_.end()); // ошибка
+
+
+        // определяем позицию последнего отсчета "целого" символа / начала "хвоста" следующего
+
+        return {};
     }
 } // namespace cycle_synch
