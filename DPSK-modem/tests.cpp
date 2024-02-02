@@ -1199,8 +1199,38 @@ namespace cycle_synch {
             cerr << "cycle_synch::TestDetermClockSynchPos has passed"s << endl;
         }
 
+        void TestPrepareRangeForDemodulation() {
+            constexpr uint32_t kSamplingFreq = 60'000u;
+            constexpr uint32_t kCarrierFreq = 1'000u;
+
+            dpsk_mod::DPSKModulator modulator(kSamplingFreq, kCarrierFreq);
+            modulator.SetModulationFunction(dpsk_mod::Cos).SetCarrierFrequency(kCarrierFreq);
+            PhaseSynchronizator synchronizator(kSamplingFreq, kCarrierFreq);
+            synchronizator.SetNumPosForDetermSynch(1000u);
+            constexpr uint32_t kNumBitPerSymbol = 1u;
+
+            { // Сигнал идёт непрерывно, начиная с половины периода. Добавлен шум
+                constexpr uint32_t kPosBeginSignal = kSamplingFreq / kCarrierFreq / 2;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() - kPosBeginSignal); // удаляем первую половину периода
+                reverse(mod_bits.begin(), mod_bits.end());
+                constexpr double kStandardDeviation = 0.2;
+                domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
+
+                synchronizator.SetPhaseDiffThreshold(2 - kStandardDeviation);
+                domain::IteratorRange<ItCircular> it_range = synchronizator.PrepareRangeForDemodulation(mod_bits);
+                assert(domain::IsEqualRanges(mod_bits.begin() + kPosBeginSignal, mod_bits.end(), it_range.begin(), it_range.end()));
+            }
+            cerr << "cycle_synch::TestPrepareRangeForDemodulation has passed"s << endl;
+        }
+
         void RunAllTests() {
             TestDetermClockSynchPos();
+            TestPrepareRangeForDemodulation();
             cerr << ">>> cycle_synch::AllTests has passed <<<"s << endl;
         }
     } // namespace tests

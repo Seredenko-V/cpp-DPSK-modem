@@ -38,6 +38,23 @@ namespace domain {
         }
     }
 
+    template <typename ItLhs, typename ItRhs>
+    bool IsEqualRanges(ItLhs lhs_begin, ItLhs lhs_end, ItRhs rhs_begin, ItRhs rhs_end) {
+        if (std::distance(lhs_begin, lhs_end) != std::distance(rhs_begin, rhs_end)) {
+            return false;
+        }
+        ItLhs it_lhs = lhs_begin;
+        ItRhs it_rhs = rhs_begin;
+        while (it_lhs != lhs_end) {
+            if (*it_lhs != *it_rhs) {
+                return false;
+            }
+            ++it_lhs;
+            ++it_rhs;
+        }
+        return true;
+    }
+
     namespace tests {
         void TestAddGausNoiseToVector();
         void TestAddGausNoiseToIteratorRange();

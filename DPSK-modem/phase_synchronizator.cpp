@@ -89,19 +89,17 @@ namespace cycle_synch {
         return ExtractSynchPos(potential_positions_synch);
     }
 
-    domain::IteratorRange<It> PhaseSynchronizator::PrepareRangeForDemodulation(const vector<double>& samples) {
+    domain::IteratorRange<ItCircular> PhaseSynchronizator::PrepareRangeForDemodulation(const vector<double>& samples) {
         static uint32_t size_prev_iter = 0u; // кол-во отсчетов "хвоста" из предыдущей итерации
         if (received_samples_.capacity() <= samples.size()) {
             SetBufferCapacity(samples.size() + num_samples_per_period_);
         }
         received_samples_.resize(size_prev_iter + samples.size()); // оставляем отсчеты "хвоста"
-
         copy(samples.begin(), samples.end(), received_samples_.begin() + size_prev_iter);
-        //uint32_t clock_synch_pos = DetermClockSynchPos(received_samples_.begin(), received_samples_.end()); // ошибка
-
+        uint32_t clock_synch_pos = DetermClockSynchPos(received_samples_.begin(), received_samples_.end());
 
         // определяем позицию последнего отсчета "целого" символа / начала "хвоста" следующего
-
-        return {};
+        size_prev_iter = (received_samples_.size() - clock_synch_pos) % num_samples_per_period_;
+        return domain::IteratorRange<ItCircular>(received_samples_.begin() + clock_synch_pos, received_samples_.end() - size_prev_iter);
     }
 } // namespace cycle_synch

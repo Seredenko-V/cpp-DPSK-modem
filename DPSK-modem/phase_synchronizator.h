@@ -10,6 +10,7 @@
 
 namespace cycle_synch {
     using It = std::vector<double>::const_iterator;
+    using ItCircular = boost::circular_buffer<double>::const_iterator;
 
     class PhaseSynchronizator {
     public:
@@ -38,7 +39,7 @@ namespace cycle_synch {
         uint32_t DetermClockSynchPos(Iterator begin_range, Iterator end_range);
         uint32_t DetermClockSynchPos(const std::vector<double>& samples);
 
-        domain::IteratorRange<It> PrepareRangeForDemodulation(const std::vector<double>& samples);
+        domain::IteratorRange<ItCircular> PrepareRangeForDemodulation(const std::vector<double>& samples);
 
     private:
         /// Определить потенциальные позиции тактовой синхронизации
@@ -97,6 +98,7 @@ namespace cycle_synch {
 
     namespace tests {
         void TestDetermClockSynchPos();
+        void TestPrepareRangeForDemodulation();
         void RunAllTests();
     } // namespace tests
 } // namespace cycle_synch
