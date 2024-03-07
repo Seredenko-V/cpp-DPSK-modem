@@ -122,7 +122,7 @@ template< class TYPE = int >
           order[ swapRow ] = hold;
         }
 
-        delete zeros;
+        delete[] zeros;
       }
 
       //-------------------------------------------------------------
