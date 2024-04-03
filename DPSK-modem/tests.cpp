@@ -2,6 +2,9 @@
 #include "gray_code.h"
 #include "dpsk_modulator.h"
 #include "dpsk_demodulator.h"
+#include "phase_synchronizator.h"
+#include "domain.h"
+
 
 #include <iostream>
 #include <cassert>
@@ -9,6 +12,7 @@
 #include <fstream>
 #include <cmath>
 #include <random>
+#include <algorithm>
 
 using namespace std;
 
@@ -104,7 +108,7 @@ namespace math {
                 const vector<uint32_t> kSymbols{1};
                 assert(kSymbols == ConvertationBitsToDecValues(kBits, 2));
             }
-            { // 3 бита в символе + дописывание одного бита для кратности 3
+            { // 3 бита в символе + дописывание двух бит для кратности 3
                 const vector<bool> kBits{1, 0,1,1, 1,0,1};
                 const vector<uint32_t> kSymbols{1,3,5};
                 assert(kSymbols == ConvertationBitsToDecValues(kBits, 3));
@@ -990,12 +994,6 @@ namespace dpsk_demod {
             cerr << "dpsk_demod::TestDemodulationIQComponents has passed"s << endl;
         }
 
-        void AddNoise(vector<double>& samples, mt19937& mt, normal_distribution<double>& dist) {
-            for (double& sample : samples) {
-                sample += dist(mt);
-            }
-        }
-
         /// Вероятность ошибки на символ
         double GetErrorPerSymbol(const vector<uint32_t>& expected_symbols, const vector<uint32_t>& real_symbols) {
             assert(expected_symbols.size() == real_symbols.size());
@@ -1021,10 +1019,6 @@ namespace dpsk_demod {
         }
 
         void CheckExchangeWithNoise(uint32_t sampling_frequency, uint32_t symbol_speed, uint32_t carrier_frequency, double standard_deviation = 0, double average = 0) {
-            random_device rd;
-            mt19937 mt(rd());
-            normal_distribution<double> dist(average, standard_deviation);
-
             dpsk_mod::DPSKModulator modulator(sampling_frequency, symbol_speed);
             modulator.SetIntermediateFrequency(symbol_speed).SetCarrierFrequency(carrier_frequency);
             DPSKDemodulator demodulator(sampling_frequency, symbol_speed);
@@ -1035,7 +1029,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddNoise(mod_bits, mt, dist);
+                domain::AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_bits = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-2: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_bits) << endl;
@@ -1048,7 +1042,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddNoise(mod_bits, mt, dist);
+                domain::AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-4: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_symbols) << endl;
@@ -1061,7 +1055,7 @@ namespace dpsk_demod {
                 vector<bool> bits = CreateRandomBitsSequence(kNumBits);
                 vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, num_bit_per_symbol);
                 vector<double> mod_bits = modulator.Modulation(bits);
-                AddNoise(mod_bits, mt, dist);
+                domain::AddGausNoise(mod_bits, standard_deviation, average);
                 vector<uint32_t> demod_symbols = demodulator.Demodulation(mod_bits);
                 cerr << "DPSK-8: standard_deviation = "s << standard_deviation << " average = "s << average << ". Err per symbol = "s
                      << GetErrorPerSymbol(symbols, demod_symbols) << endl;
@@ -1093,3 +1087,151 @@ namespace dpsk_demod {
         }
     } // namespace tests
 } // namespace dpsk_demod
+
+namespace domain {
+    namespace tests {
+        void TestAddGausNoiseToVector() {
+            constexpr uint16_t kSizeSequence = 100u;
+            constexpr double kAverage = 0.0;
+            {
+                constexpr double kStandardDeviation = 0.2;
+                vector<double> sequence(kSizeSequence);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence, kStandardDeviation, kAverage);
+                assert(!math::IsSameContainersWithDouble(original_sequence, sequence));
+            }{
+                constexpr double kStandardDeviation = 0.0;
+                vector<double> sequence(kSizeSequence, 3.14);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence, kStandardDeviation, kAverage);
+                assert(math::IsSameContainersWithDouble(original_sequence, sequence));
+            }
+            cerr << "domain::TestAddGausNoiseToVector has passed"s << endl;
+        }
+
+        void TestAddGausNoiseToIteratorRange() {
+            constexpr uint16_t kSizeSequence = 100u;
+            constexpr double kAverage = 0.0;
+            {
+                constexpr double kStandardDeviation = 0.2;
+                vector<double> sequence(kSizeSequence);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence.begin(), sequence.end(), kStandardDeviation, kAverage);
+                assert(!math::IsSameContainersWithDouble(original_sequence, sequence));
+            }{
+                constexpr double kStandardDeviation = 0.0;
+                vector<double> sequence(kSizeSequence, 3.14);
+                const vector<double> original_sequence = sequence;
+                AddGausNoise(sequence.begin(), sequence.end(), kStandardDeviation, kAverage);
+                assert(math::IsSameContainersWithDouble(original_sequence, sequence));
+            }
+            cerr << "domain::TestAddGausNoiseToIteratorRange has passed"s << endl;
+        }
+
+        void RunAllTests() {
+            TestAddGausNoiseToVector();
+            TestAddGausNoiseToIteratorRange();
+            cerr << ">>> domain::AllTests has passed <<<"s << endl;
+        }
+    } // namespace tests
+} // namespace domain
+
+namespace cycle_synch {
+    namespace tests {
+        void TestDetermClockSynchPos() {
+            constexpr uint32_t kSamplingFreq = 60'000u;
+            constexpr uint32_t kCarrierFreq = 1'000u;
+
+            dpsk_mod::DPSKModulator modulator(kSamplingFreq, kCarrierFreq);
+            modulator.SetModulationFunction(dpsk_mod::Cos).SetCarrierFrequency(kCarrierFreq);
+            PhaseSynchronizator synchronizator(kSamplingFreq, kCarrierFreq);
+            synchronizator.SetNumPosForDetermSynch(1000u);
+            constexpr uint32_t kNumBitPerSymbol = 1u;
+
+            // ОФМ-2 без сдвига созвездия
+            { // Сигнал с 0 отсчета
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+                synchronizator.SetPhaseDiffThreshold(1e-5);
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == 0);
+            }{ // Сигнал идёт непрерывно, начиная с половины периода. Шума нет
+                constexpr uint32_t kPosBeginSignal = kSamplingFreq / kCarrierFreq / 2;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() - kPosBeginSignal); // удаляем первую половину периода
+                reverse(mod_bits.begin(), mod_bits.end());
+                synchronizator.SetPhaseDiffThreshold(1e-5);
+
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
+            }{ // Сигнал идёт непрерывно, начиная с половины периода. Добавлен шум
+                constexpr uint32_t kPosBeginSignal = kSamplingFreq / kCarrierFreq / 2;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() - kPosBeginSignal); // удаляем первую половину периода
+                reverse(mod_bits.begin(), mod_bits.end());
+                constexpr double kStandardDeviation = 0.2;
+                domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
+
+                synchronizator.SetPhaseDiffThreshold(2 - kStandardDeviation);
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
+            }{ // Сигнал должен начинаться в течение отсчетов первого периода, иначе - неверная позиция синхронизации
+                constexpr uint32_t kPosBeginSignal = 111u % (kSamplingFreq / kCarrierFreq);
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() + kPosBeginSignal);
+                reverse(mod_bits.begin(), mod_bits.end());
+                constexpr double kStandardDeviation = 0.1;
+                domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
+
+                synchronizator.SetPhaseDiffThreshold(2 - kStandardDeviation);
+                assert(synchronizator.DetermClockSynchPos(mod_bits) == kPosBeginSignal);
+            }
+            cerr << "cycle_synch::TestDetermClockSynchPos has passed"s << endl;
+        }
+
+        void TestPrepareRangeForDemodulation() {
+            constexpr uint32_t kSamplingFreq = 60'000u;
+            constexpr uint32_t kCarrierFreq = 1'000u;
+
+            dpsk_mod::DPSKModulator modulator(kSamplingFreq, kCarrierFreq);
+            modulator.SetModulationFunction(dpsk_mod::Cos).SetCarrierFrequency(kCarrierFreq);
+            PhaseSynchronizator synchronizator(kSamplingFreq, kCarrierFreq);
+            synchronizator.SetNumPosForDetermSynch(1000u);
+            constexpr uint32_t kNumBitPerSymbol = 1u;
+
+            { // Сигнал идёт непрерывно, начиная с половины периода. Добавлен шум
+                constexpr uint32_t kPosBeginSignal = kSamplingFreq / kCarrierFreq / 2;
+                vector<bool> bits{0,1,1,1,0,1};
+                vector<uint32_t> symbols = math::ConvertationBitsToDecValues(bits, kNumBitPerSymbol);
+                vector<double> mod_bits = modulator.Modulation(bits);
+
+                reverse(mod_bits.begin(), mod_bits.end());
+                mod_bits.resize(mod_bits.size() - kPosBeginSignal); // удаляем первую половину периода
+                reverse(mod_bits.begin(), mod_bits.end());
+                constexpr double kStandardDeviation = 0.2;
+                domain::AddGausNoise(mod_bits.begin(), mod_bits.begin() + kPosBeginSignal, kStandardDeviation);
+
+                synchronizator.SetPhaseDiffThreshold(2 - kStandardDeviation);
+                domain::IteratorRange<ItCircular> it_range = synchronizator.PrepareRangeForDemodulation(mod_bits);
+                assert(domain::IsEqualRanges(mod_bits.begin() + kPosBeginSignal, mod_bits.end(), it_range.begin(), it_range.end()));
+            }
+            cerr << "cycle_synch::TestPrepareRangeForDemodulation has passed"s << endl;
+        }
+
+        void RunAllTests() {
+            TestDetermClockSynchPos();
+            TestPrepareRangeForDemodulation();
+            cerr << ">>> cycle_synch::AllTests has passed <<<"s << endl;
+        }
+    } // namespace tests
+} // namespace cycle_synch

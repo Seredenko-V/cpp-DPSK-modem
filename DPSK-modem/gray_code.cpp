@@ -18,14 +18,14 @@ namespace gray_code {
         }
         // возвращается просто 0
         if (num_codes == 1) {
-            return {{0}};
+            return {{false}};
         }
         const int kLengthGrayCodes = log2(num_codes); // количество бит в кодах Грея
-        vector<vector<bool>> gray_codes(num_codes, vector<bool>(kLengthGrayCodes, 0));
+        vector<vector<bool>> gray_codes(num_codes, vector<bool>(kLengthGrayCodes, false));
 
         // по блокам, начиная с 1-го. Первый - крайний случай
         for (int block = 1; block < num_codes; block *= 2) {
-            const int kPosNewSeniorDigit = kLengthGrayCodes - log2(block) - 1; // позиция нового старшего разряда, в который записывается единица
+            const int kPosNewSeniorDigit = kLengthGrayCodes - static_cast<int>(log2(block)) - 1; // позиция нового старшего разряда, в который записывается единица
             int offset_back = 1; // смещение назад по номерам кодов Грея
 
             // Обработка кодов внутри блока. Количество кодов в одном блоке равно удвоенному номеру блока (по кодам внутри одного блока)

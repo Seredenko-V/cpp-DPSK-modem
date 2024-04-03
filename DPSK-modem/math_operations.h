@@ -7,6 +7,8 @@
 #include <iomanip>
 
 namespace math {
+    constexpr double EPSILON = 1e-6; // погрешность сравнения double по умолчанию
+
     /// Является ли число степенью двойки: N^2 = value. Сложность: O(1)
     bool IsPowerOfTwo(int value) noexcept;
 
@@ -23,11 +25,11 @@ namespace math {
     std::vector<uint32_t> ConvertationBitsToDecValues(const std::vector<bool>& bits, int32_t num_bits_per_symbol);
 
     /// Проверка на равенство двух double с заданной точностью. По умолчанию 1e-6. Сложность: O(1)
-    bool IsSameDouble(double lhs, double rhs, double delta = 1e-6) noexcept;
+    bool IsSameDouble(double lhs, double rhs, double delta = EPSILON) noexcept;
 
     /// Проверка на равенство двух контейнеров с double. Сложность: O(N)
     template <typename Container>
-    bool IsSameContainersWithDouble(const Container& lhs, const Container& rhs, double delta = 1e-6) {
+    bool IsSameContainersWithDouble(const Container& lhs, const Container& rhs, double delta = EPSILON) {
         if (lhs.size() != rhs.size()) {
             return false;
         }

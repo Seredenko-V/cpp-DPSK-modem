@@ -29,7 +29,7 @@ namespace dpsk_mod {
     }
 
     DPSKModulator& DPSKModulator::SetModulationFunction(function<double(double)> mod_function) {
-        mod_function_ = mod_function;
+        mod_function_ = move(mod_function);
         double (*const* func)(double) = mod_function_.target<double(*)(double)>();
 
         if (func && *func == *Sin.target<double(*)(double)>()) {
